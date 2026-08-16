@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -103,8 +104,11 @@
     content:"say this aloud";display:block;font-style:normal;font-family:var(--sans);
     font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ember);margin-bottom:8px;
   }
-  .say.host::before{content:"the host says"}
-  .say.all::before{content:"everyone, together"}
+  .say.alone::before{content:"say this aloud — alone or together"}
+  .teach{border:1px dashed var(--line2);border-radius:4px;background:rgba(217,176,106,.04);padding:18px 20px;margin:16px 0}
+  .teach h4{color:var(--gold)}
+  .teach p:last-child{margin-bottom:0}
+  .aside{color:var(--faint);font-size:.9rem;font-style:italic;margin:10px 0 16px;padding-left:14px;border-left:1px solid var(--line)}
 
   /* ============ BUTTONS ============ */
   .btn{
@@ -392,8 +396,8 @@
 
 const EVENT = { y:2026, m:8, d:16, hour:20 };   // 16 August 2026, 20:00 local
 const S = {                                      // in-memory state only
-  step:0, mode:null, lat:null, lon:null, place:null, sound:true, scale:1,
-  called:{}, ladder:{}, fill:{}, farewell:'', cordMode:null, cordEnds:{},
+  step:0, lat:null, lon:null, place:null, sound:true, scale:1,
+  called:{}, dopen:{}, ladder:{}, fill:{}, farewell:'', cordMode:null, cordEnds:{},
   checks:{}, lit:false, pushed:false, sat:false
 };
 
@@ -498,10 +502,12 @@ const CAUTIONS_BOAT = [
 ];
 
 const CRIB = [
- ['Someone names a living person','Redirect to the pull, not the person: we cut what runs between, not the one at the other end. Hexing is not what tonight is. Say it once, kindly, and move on.'],
- ['Someone breaks open at the naming step','Expected — rung four does that. Do not rush them and do not make them perform recovery. Let the circle hold the silence; it is good at it. If someone is in real distress rather than catharsis, step them out of circle with one person and let the working continue without them.'],
- ['Someone cannot burn','Rental, roommates, no ventilation, attending from bed. Give them the alternates up front so they are not improvising in the moment: <b>dissolve</b> the parchment in water and pour it out at a drain or a root; <b>bury</b> it; or <b>shred</b> it and part with the pieces in two directions. Say clearly that these are equivalent, not lesser. Marzanna is drowned as often as she is burned.'],
- ['Someone is upset that it is still daylight at eight','Say the line and mean it: a lantern you cannot see is still lit. Then point them at the second sitting, which is theirs and is arguably the better half.']
+ ['You find yourself writing a person’s name','Move it one step back, to the pull rather than the person. You are cutting what runs between you, not the one at the other end. Tonight is not a hexing and the working will not hold if you try to make it one — Fudō’s sword cuts the story, never the human. Rewrite the line and carry on.'],
+ ['You break open at rung four','Expected. Rung four does that, because naming what a thing has been paying you is the first honest look most people take at it. Do not rush yourself and do not perform a recovery for anyone. Sit in it. If it tips from catharsis into real distress, stop the working — step away, get someone, come back to this another night. The page will keep.'],
+ ['You cannot burn','Rental, roommates, no ventilation, doing this from bed. These are <b>equivalent, not lesser</b>: <b>dissolve</b> the parchment in water and pour it out at a drain or a root; <b>bury</b> it; or <b>shred</b> it and part with the pieces in two directions. Marzanna is drowned as often as she is burned.'],
+ ['It is still broad daylight at eight','A lantern you cannot see is still lit. The dead of Obon are not visible either. Launch on time anyway — the chain matters more than the picture — and take the second sitting, which is yours and is arguably the better half.'],
+ ['You have opened this hours late, or days late','Then the relay has moved on without you and it does not matter in the least. Work it now. Launch at the next eight o’clock you get. The wave is a shape to belong to, not a deadline to miss.'],
+ ['Nothing is happening and you feel foolish','Common, and not a verdict on you or the working. Go back to the naming and check whether you wrote the wrapper instead of the thing. Vague input, vague result. Precision is the whole engine here.']
 ];
 
 const ZONES = [
@@ -773,15 +779,7 @@ const STEPS=[
 
   <hr class="rule">
   <p class="eyebrow">First — tell it where you are</p>
-  <p class="muted">This is worked out on your device and goes nowhere. It sets your launch time, your true dark, and your place in the relay.</p>
-
-  <div class="field">
-    <label>Are you leading, or working alone?</label>
-    <div class="toggle">
-      <button data-act="mode" data-v="host" class="${S.mode==='host'?'on':''}">I am leading a circle</button>
-      <button data-act="mode" data-v="solo" class="${S.mode==='solo'?'on':''}">I am working alone</button>
-    </div>
-  </div>
+  <p class="muted">Worked out on your device; it goes nowhere. It sets your launch time, your true dark, and your place in the relay. This page will walk you through the whole working from here — alone, or with whoever is beside you. Wherever you are, whenever you opened it.</p>
 
   <div class="field">
     <label>Where are you? — for sunset and true dark</label>
@@ -928,20 +926,32 @@ const STEPS=[
 
 /* ---------------------------------------------------------- 4 · OPEN */
 {id:'open', name:'The fires are lit', eyebrow:':00 — Open', mins:5,
- render(){ return `<h2>The fires are lit today, and so is ours</h2>
-  <p class="lede">Welcome them. Say the shape of the hour in three sentences: <b>name it, part with it, replace it.</b> Then say the boat is coming, and that nobody burns anything until the safety brief.</p>
-  <div class="say host">Tonight is the night of the send-off fires. On the hillsides above Kyoto five great fires are lit at eight in the evening to close Obon and light the returning road for the dead who have been visiting since the thirteenth. Borrow the logic exactly: the fire is not for destruction. It is for the journey out.</div>
-  <div class="say host">Obon does not end by pretending the dead were never there. It ends by feeding them, sitting with them, and then lighting a road and saying — go well. Everything we burn tonight gets the same treatment. We are not incinerating what we hated. We are lighting the way out for what we are done with. And then, unlike almost everyone, we are going to stay in the room long enough to fill the gap.</div>
-  <p class="muted">${S.mode==='solo'?'Working alone: read these aloud anyway. The mouth commits what the mind will renegotiate.':'Leading: give it the full five minutes. People arrive scattered and need a moment to land.'}</p>`;}
+ render(){ return `<h2>The fires are lit today, and so is yours</h2>
+  <p class="lede">Take five minutes before you touch anything. You have arrived here scattered — everyone does — and the working goes badly if you start it still half in your day.</p>
+  <div class="teach">
+    <h4>The shape of the whole hour, in three words</h4>
+    <p style="font-size:1.1rem;color:var(--ink)"><b>Name it. Part with it. Replace it.</b></p>
+    <p>The third is the one nearly everyone skips, and it is the one that decides whether any of this holds. An emptied space fills with whatever is nearest, and what is nearest is generally the thing you just removed, because it knows the room.</p>
+  </div>
+  <p>Tonight the send-off fires burn above Kyoto — lit at eight in the evening to close Obon and light the returning road for the dead who have been visiting since the thirteenth. Borrow that logic exactly, because it is better than the one you are probably carrying: <b>the fire is not for destruction. It is for the journey out.</b></p>
+  <p>Obon does not end by pretending the dead were never there. It ends by feeding them, sitting with them, and then lighting a road and saying <i>go well</i>. Everything you burn tonight gets the same treatment. You are not incinerating what you hated. You are lighting the way out for what you are done with — and then staying in the room long enough to fill the gap.</p>
+  <div class="say alone">Tonight the fire is not for destruction. It is for the journey out. I am not here to burn what I hated. I am here to light the road for what I am done with, and to stay long enough to fill the space it leaves.</div>
+  <p class="aside">Read it aloud even if there is nobody to hear it. The mouth commits what the mind will renegotiate later.</p>
+  <p class="muted">Nothing gets lit until the next screen. The check comes first.</p>`;}
 },
 
 /* ---------------------------------------------------------- 5 · WARD */
 {id:'ward', name:'Casting & the brief', eyebrow:':05 — Ward', mins:5,
- render(){ return `<h2>Cast, then speak plainly</h2>
-  <p class="lede">Cast as your practice runs. Then drop out of ritual voice entirely and give the brief: <b>vessel, surface, water, window.</b></p>
-  <div class="banner"><b>Have everyone physically touch their water source before you proceed.</b> Not say they have one — touch it. Do not skip this because it is unromantic.</div>
-  <p>Say the boat plan too, so nobody is improvising later: frames built, paper blank, launch at eight local, outdoors, and a second sitting at their own dark.</p>
-  <div class="say host">Water in reach. Window open. Hair back, sleeves up. Nothing swallowed, nothing burned in a closed room, no accelerants. If you are somewhere you cannot burn, you are not doing a lesser version — you will dissolve, bury, or shred, and Marzanna is drowned as often as she is burned.</div>`;}
+ render(){ return `<h2>Cast, then drop out of ritual voice entirely</h2>
+  <p class="lede">Cast as your practice runs. Then stop being solemn for one minute and run the physical check, out loud, like a person checking a stove.</p>
+  <div class="banner"><b>Touch your water now.</b> Not think about it, not remember that there is a tap somewhere — put your hand on the vessel. The unromantic minute is the one that keeps this a working rather than an incident. If anyone is with you, have them touch theirs too.</div>
+  <div class="teach">
+    <h4>Four things, in order</h4>
+    <p><b>Vessel</b> — takes heat without cracking. <b>Surface</b> — will not scorch, nothing hanging above it. <b>Water</b> — in reach, now. <b>Window</b> — open.</p>
+    <p style="margin:0">Then: hair back, sleeves up. Nothing swallowed, nothing burned in a closed room, no accelerants ever.</p>
+  </div>
+  <p>Fix the boat plan in your head now too, so you are not improvising in the dark later: <b>frame already built, paper still blank, launch at eight local, outdoors, and a second sitting at your own true dark.</b></p>
+  <p class="aside">If you are somewhere you cannot burn at all, you are not doing a lesser version. You will dissolve, bury, or shred — and Marzanna is drowned as often as she is burned.</p>`;}
 },
 
 /* ---------------------------------------------------------- 6 · CALL */
@@ -949,7 +959,7 @@ const STEPS=[
  render(){
   const n=Object.keys(S.called).filter(k=>S.called[k]).length;
   const cards=DEITIES.map((d,i)=>`
-   <div class="deity ${S.called[d.id]?'called':''}" data-d="${d.id}">
+   <div class="deity ${S.called[d.id]?'called':''} ${S.dopen[d.id]?'open':''}" data-d="${d.id}">
      <button class="dhead" data-act="dopen" data-d="${d.id}">
        <div class="dnum">${S.called[d.id]?'✓':d.order}</div>
        <div class="dname"><div class="n">${esc(d.n)}<span class="glyph">${esc(d.g)}</span></div><div class="r">${esc(d.say)}</div></div>
@@ -967,12 +977,13 @@ const STEPS=[
    </div>`).join('');
   return `<h2>Call the Eight</h2>
   <p class="lede">Eight roads to the same door, across seven traditions — male and female, bright and dark. Ganesha opens, and Ganesha closes. Tap a name to read it; tap <i>speak the invocation</i> for the words in large type, for reading aloud in poor light.</p>
-  <div class="say all">We call not one tradition tonight but eight roads to the same door — the key-bearer and the loosener, the eater of filth and the immovable blade, the carried-out season, the last cup, and the one who walks ahead. Be welcome. Be exact with us.</div>
+  <div class="say alone">I call not one tradition tonight but eight roads to the same door — the key-bearer and the loosener, the eater of filth and the immovable blade, the carried-out season, the last cup, and the one who walks ahead. Be welcome. Be exact with me.</div>
+  <p class="aside">Say <i>we</i> and <i>us</i> if there are others beside you. Leave a full breath between each name — the pause is doing as much as the words.</p>
   <p class="chkmeter" id="callMeter">${n} / 8 called</p>
   <div class="dgrid">${cards}</div>
   <div class="card flat" style="border-style:dashed">
     <h4>A note on who is not on this list</h4>
-    <p style="margin:0">No Orisha, no Lwa, no Indigenous or otherwise initiatory figures are on tonight's roster. Not because they lack release aspects — several have them profoundly — but because those are held within lineages with living gatekeepers, and a public open working is not where that door gets opened. The eight above are all documented, publicly attested, and appropriate to name in a mixed room. If someone in the circle <i>is</i> initiated and wishes to work their own lineage privately alongside ours, that is theirs to do and not ours to stage.</p>
+    <p style="margin:0">No Orisha, no Lwa, no Indigenous or otherwise initiatory figures are on tonight's roster. Not because they lack release aspects — several have them profoundly — but because those are held within lineages with living gatekeepers, and a public open working is not where that door gets opened. The eight above are all documented, publicly attested, and appropriate to name in any room. If you <i>are</i> initiated somewhere and wish to work your own lineage privately alongside this, that is yours to do — and not this page's to stage for you.</p>
   </div>`;
  }
 },
@@ -993,10 +1004,14 @@ const STEPS=[
     </div>`;}).join('');
   const done=LADDER.every(r=>(S.ladder[r.k]||'').trim());
   return `<h2>The heart of it</h2>
-  <p class="lede">This is where the hour is won or lost. Everyone writes <b>in their own hand</b> on the parchment — no typing, no dictation, no proxies. Use the ladder below to find the words, then copy them onto the sheet.</p>
-  <div class="say host">"Negativity" is not a thing. It has never once been a thing. Write down the arrangement. Write down the habit. Write down the hold — and write down what you were getting out of it, because you were getting something, or it would have ended by itself years ago.</div>
+  <p class="lede">This is where the hour is won or lost. The ladder below is for finding the words; the parchment is for committing them <b>in your own hand</b>. No typing on the sheet, no dictation, no proxies.</p>
+  <div class="teach">
+    <h4>Why "negativity" will not burn</h4>
+    <p>"Negativity" is not a thing. It has never once been a thing. Fire needs something with edges — so write the arrangement, the habit, the actual hold.</p>
+    <p style="margin:0">And write what you were <i>getting</i> out of it. That is rung four and it is the hard one, because you were getting something, or it would have ended by itself years ago. Nothing survives this long unpaid.</p>
+  </div>
   <p class="eyebrow" style="margin-top:24px">The Precision Ladder</p>
-  <p class="muted">Roughly a minute per rung. Each opens as you fill the one above.</p>
+  <p class="muted">Roughly a minute per rung. Each opens as you fill the one above. Take longer here than the timer suggests — this is the beat worth overrunning.</p>
   ${rungs}
   <div class="privacy"><span>●</span><div>Nothing here is stored or transmitted. When you close this tab it is gone. Copy it to your parchment in your own hand — that is the copy that matters.</div></div>
   ${done?`<div class="btnrow"><button class="btn primary wide" data-act="parch">Compose my parchment ↓</button></div><div id="parchOut"></div>`:'<div class="banner">Fill all six rungs and the parchment will compose itself.</div>'}`;
@@ -1036,9 +1051,9 @@ const STEPS=[
 {id:'burn', name:'The Fire', eyebrow:':36 — Burn', mins:7,
  render(){
   return `<h2>Carried out, not destroyed</h2>
-  <p class="lede">One at a time, unhurried. Each person reads their sheet aloud — or, if it is not sayable in company, reads only the closing line and holds the rest. Then it goes to the vessel.</p>
-  <div class="banner"><b>Watch it go all the way out.</b> Do not move to the next person while paper is still glowing. Use the three-minute timer below and let the silence sit; the circle is good at silence.</div>
-  <div class="say all">Not destroyed. Carried out. Go well, and go all the way.</div>
+  <p class="lede">Read your sheet aloud, then give it to the vessel. If it is not sayable in company, read only the closing line and hold the rest — the page burns the same either way.</p>
+  <div class="banner"><b>Watch it go all the way out.</b> Do not turn away, do not start the next thing, do not move on while paper is still glowing. Let the silence sit longer than is comfortable; that discomfort is most of the working. If others are with you, one at a time and unhurried.</div>
+  <div class="say alone">Not destroyed. Carried out. Go well, and go all the way.</div>
   ${S.ladder.closing?`<div class="card deep"><h4>Your closing line, to read at the fire</h4>
     <p style="font-size:1.15rem;font-style:italic;color:#f4eae0;margin:0">${esc(S.ladder.closing)}</p></div>`:''}
   <div class="card"><h4>If you cannot burn</h4>
@@ -1055,8 +1070,12 @@ const STEPS=[
   const max=new Date(today.getTime()+7*864e5);
   const ok=(S.fill.space||'').trim()&&(S.fill.into||'').trim()&&(S.fill.feed||'').trim()&&S.fill.when;
   return `<h2>The step nearly everyone skips</h2>
-  <p class="lede">Call <b>Wepwawet</b> now — Opener of the Ways, who goes at the head of the procession and clears the road. Then each person completes the formula <b>out loud, in the circle</b>. Silent intentions do not count here; the whole point is that it is witnessed.</p>
-  <div class="say host">The space is empty and it will not stay empty. It fills with whatever is nearest — and what is nearest is the thing you just took out, because it knows the room. So say what goes in. Say it where we can hear it. Say when.</div>
+  <p class="lede">Call <b>Wepwawet</b> now — Opener of the Ways, who goes at the head of the procession and clears the road ahead of everyone else. Then fill in the three lines below and <b>say them out loud</b>.</p>
+  <div class="teach">
+    <h4>Why this cannot be done silently</h4>
+    <p>The space is empty and it will not stay empty. It fills with whatever is nearest, and what is nearest is the thing you just took out, because it knows the room and it knows the way back.</p>
+    <p style="margin:0">So say what goes in. Say it where it can be heard — by whoever is beside you, or by the room if you are alone. A silent intention at this step is a gap left open, and something else will use it.</p>
+  </div>
   <div class="field"><label>1 · The space that is now empty is —</label>
     <input class="inp" data-act="fill" data-k="space" value="${esc(S.fill.space||'')}" placeholder="the hours, the attention, the room in your week it occupied">
     <p class="tiny" style="margin-top:6px">Be concrete. "Thursday evenings." "The first hour of every morning." "The part of me that was always braced."</p></div>
@@ -1068,9 +1087,9 @@ const STEPS=[
     <p class="tiny" style="margin-top:6px">Not "be kinder to myself." Something someone else could check.</p></div>
   <div class="field"><label>…and I will do that by —</label>
     <input class="inp" type="date" data-act="fill" data-k="when" value="${esc(S.fill.when||'')}" min="${iso(today)}" max="${iso(max)}">
-    <p class="tiny" style="margin-top:6px">Inside seven days. Nobody leaves without a date attached.</p></div>
-  <div class="banner"><b>Host's note:</b> if someone's answer to (2) is a version of the thing they just burned — a better relationship of the same shape, a healthier version of the same job — gently send them back a rung. That is the old thing wearing a coat, and it is the single most common failure of release work.</div>
-  ${ok?`<div class="card deep"><h4>Say this aloud, now, where they can hear it</h4>
+    <p class="tiny" style="margin-top:6px">Inside seven days. Do not leave this screen without a date on it — an intention without a date is a wish, and wishes do not hold ground.</p></div>
+  <div class="banner"><b>Check your answer to (2) before you say it.</b> If what goes in is a version of the thing you just burned — a better relationship of the same shape, a healthier version of the same job, the same arrangement with nicer people in it — go back and write something else. That is the old thing wearing a coat, and it is the single most common failure of release work. It will feel like progress right up until it doesn't.</div>
+  ${ok?`<div class="card deep"><h4>Say this aloud, now</h4>
     <p style="font-size:1.1rem;font-style:italic;color:#f4eae0;margin:0">The space that is now empty is ${esc(S.fill.space)}. Into it goes ${esc(S.fill.into)}. I will feed it by ${esc(S.fill.feed)}, and I will do that by ${esc(new Date(S.fill.when+'T12:00').toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'}))}.</p>
     </div><div class="btnrow"><button class="btn sm" data-act="copyfill">Copy it</button></div>`:''}
   <div class="say">Opener of the Ways, who goes first and clears the road — the ground is bare now. Do not leave it bare. Open the way I named, and go ahead of me on it, so that what left tonight finds the road closed behind it.</div>`;
@@ -1093,7 +1112,7 @@ const STEPS=[
   <div class="card"><h4>Keep the two apart</h4>
     <p><b>The parchment was the account</b> — the arrangement, the habit, your own part in it, named exactly. Ugly, specific, and gone to the fire.</p>
     <p style="margin:0"><b>The lantern paper is the farewell</b> — what you would say to the thing if it could hear you, and if you had finished being angry. Two lines is plenty. <i>Go well</i> is plenty. Obon does both: a working that is all fire and no farewell tends to bring the thing back in a new coat within the month.</p></div>
-  <div class="say host">You have already told the truth about it. That page is ash. This one is different — this one is the thing you would say if it could hear you, and if you were done being angry. Write it inside if it is yours alone; write it outside if you want it witnessed.</div>
+  <p>You have already told the truth about it and that page is ash. This one is different. This is the thing you would say if it could hear you and you were done being angry — which you may not be yet, and that is allowed. Write what you can reach tonight.</p>
   <div class="field"><label>Your farewell — draft it here, then write it on the paper by hand</label>
     <textarea class="inp" data-act="farewell" rows="3" placeholder="Go well…">${esc(S.farewell)}</textarea></div>
   <div class="field"><label>Which face?</label>
@@ -1101,7 +1120,7 @@ const STEPS=[
       <button data-act="side" data-v="in" class="${side==='in'?'on':''}">Inside — mine alone</button>
       <button data-act="side" data-v="out" class="${side==='out'?'on':''}">Outside — witnessed</button>
     </div>
-    <p class="tiny" style="margin-top:8px">${side==='in'?'Written inward, it is read only by the light and by whatever is leaving.':side==='out'?'Written outward, the circle sees it as it goes.':'Either is right. Choose deliberately rather than by default.'}</p></div>
+    <p class="tiny" style="margin-top:8px">${side==='in'?'Written inward, it is read only by the light and by whatever is leaving.':side==='out'?'Written outward, it is read by the night and by anyone standing with you.':'Either is right. Choose deliberately rather than by default.'}</p></div>
   <p class="eyebrow" style="margin-top:24px">Binding</p>${bl}
   <div class="banner"><b>Do not light it yet.</b> The next screen holds until eight o'clock.</div>`;
  }
@@ -1147,9 +1166,9 @@ const STEPS=[
   return `<h2>Reverse order, Ganesha last</h2>
   <p class="lede">Thank and release the eight in reverse order of calling. Then open the circle.</p>
   ${items}
-  <div class="banner"><b>Then: water, food, and a straightforward human sentence to land everyone.</b> Release work leaves people wide open and cheerful in a way that fades badly on the drive home. Do not let them leave on the high.</div>
-  <div class="say host">Cords cut, cauldrons lit, boats on the water, the week put down where it belongs. Go and eat something.</div>
-  <div class="card"><h4>Send them off with one instruction, not a summary</h4>
+  <div class="banner"><b>Then: water, food, and something ordinary said out loud.</b> Release work leaves you wide open and cheerful in a way that fades badly an hour later. Do not finish on the high and walk straight into the rest of your evening — eat something first, and make sure anyone with you eats too.</div>
+  <div class="say alone">Cords cut, cauldrons lit, boats on the water, the week put down where it belongs.</div>
+  <div class="card"><h4>Carry one instruction out of here — not a summary</h4>
     <p style="margin:0;font-size:1.08rem;font-style:italic;color:#f4eae0">Go back out when it is dark. Look at the boat. Do not touch it.</p></div>`;
  }
 },
@@ -1225,10 +1244,15 @@ function parchmentText(){
 
 /* ============================================================ ENGINE */
 let tickers={};
-function render(){
+/* render(true) = a "soft" redraw after ticking a box or typing: it keeps your
+   scroll position and does not touch a running timer. Only moving between
+   steps scrolls back to the top. */
+function render(soft){
+  const y = soft ? window.scrollY : 0;
+  const af = soft ? ' style="animation:none"' : '';
   tickers={};
   const st=STEPS[S.step];
-  $('#stage').innerHTML=`<div class="screen">${st.render()}</div>`;
+  $('#stage').innerHTML=`<div class="screen"${af}>${st.render()}</div>`;
   $('#brandsub').textContent=st.name;
   $('#stepno').textContent=(S.step+1)+' / '+STEPS.length;
   $('#progbar').style.width=((S.step)/(STEPS.length-1)*100)+'%';
@@ -1236,9 +1260,9 @@ function render(){
   const nx=$('#btnNext');
   nx.textContent = S.step===STEPS.length-1 ? 'Begin again' : 'Continue →';
   if(st.mount) st.mount();
-  setupTimer(st.mins||0);
+  if(!soft) setupTimer(st.mins||0);
   tick();
-  window.scrollTo({top:0,behavior:'instant'});
+  window.scrollTo(0,y);
 }
 function go(n){
   const st=STEPS[S.step];
@@ -1297,20 +1321,19 @@ $('#btnText').onclick=()=>{ S.scale = S.scale>=1.3 ? 1 : S.scale+0.15;
 $('#stage').addEventListener('click',e=>{
   const b=e.target.closest('[data-act]'); if(!b) return;
   const a=b.dataset.act;
-  if(a==='mode'){ S.mode=b.dataset.v; render(); }
-  if(a==='chk'){ S.checks[b.dataset.id]=!S.checks[b.dataset.id]; render(); }
-  if(a==='cord'){ S.cordMode=b.dataset.v; render(); }
-  if(a==='side'){ S.checks.side=b.dataset.v; S.side=b.dataset.v; render(); }
-  if(a==='burned'){ S.checks.burned=!S.checks.burned; bell(392,1.8); render(); }
-  if(a==='lit'){ S.lit=!S.lit; if(S.lit) bell(528,1.6); render(); }
-  if(a==='pushed'){ S.pushed=!S.pushed; if(S.pushed) bell(440,2.2); render(); }
-  if(a==='sat'){ S.sat=!S.sat; if(S.sat) bell(349,2.4); render(); }
+  if(a==='chk'){ S.checks[b.dataset.id]=!S.checks[b.dataset.id]; render(true); }
+  if(a==='cord'){ S.cordMode=b.dataset.v; render(true); }
+  if(a==='side'){ S.checks.side=b.dataset.v; S.side=b.dataset.v; render(true); }
+  if(a==='burned'){ S.checks.burned=!S.checks.burned; bell(392,1.8); render(true); }
+  if(a==='lit'){ S.lit=!S.lit; if(S.lit) bell(528,1.6); render(true); }
+  if(a==='pushed'){ S.pushed=!S.pushed; if(S.pushed) bell(440,2.2); render(true); }
+  if(a==='sat'){ S.sat=!S.sat; if(S.sat) bell(349,2.4); render(true); }
   if(a==='parch'){ $('#parchOut').innerHTML=parchmentHTML(); $('#parchOut').scrollIntoView({behavior:'smooth',block:'nearest'}); }
   if(a==='copyparch') copy(parchmentText(),b);
   if(a==='copyrelay') copy(relayLine(),b);
   if(a==='copysit') copy(sittingLine(),b);
   if(a==='copyfill') copy(`The space that is now empty is ${S.fill.space}. Into it goes ${S.fill.into}. I will feed it by ${S.fill.feed}, and I will do that by ${S.fill.when}.`,b);
-  if(a==='dopen'){ b.closest('.deity').classList.toggle('open'); }
+  if(a==='dopen'){ const id=b.dataset.d; S.dopen[id]=!S.dopen[id]; render(true); }
   if(a==='invoke'){ openInvocation(b.dataset.d); }
   if(a==='skipgeo'){ $('#geoMsg').textContent='Fine — you will still get your launch time and your place in the relay. Only sunset and true dark need a location.'; }
   if(a==='geo'){
@@ -1318,7 +1341,7 @@ $('#stage').addEventListener('click',e=>{
     if(!navigator.geolocation){ msg.textContent='This browser will not share a location. Pick the nearest city instead.'; return; }
     navigator.geolocation.getCurrentPosition(p=>{
       S.lat=p.coords.latitude; S.lon=p.coords.longitude; S.place='your location';
-      render(); $('#geoMsg').textContent='Got it. Sunset and true dark are set for where you actually are.';
+      render(true); $('#geoMsg').textContent='Got it. Sunset and true dark are set for where you actually are.';
     },()=>{ msg.textContent='Location refused or unavailable — pick the nearest city below, it is close enough for sunset.'; },
     {timeout:9000,maximumAge:6e5});
   }
@@ -1327,9 +1350,9 @@ $('#stage').addEventListener('change',e=>{
   const t=e.target.closest('[data-act]'); if(!t) return;
   if(t.dataset.act==='city'){
     const i=t.value; if(i===''){ return; }
-    const c=CITIES[+i]; S.place=c[0]; S.lat=c[1]; S.lon=c[2]; render();
+    const c=CITIES[+i]; S.place=c[0]; S.lat=c[1]; S.lon=c[2]; render(true);
   }
-  if(t.dataset.act==='fill'){ S.fill[t.dataset.k]=t.value; render(); }
+  if(t.dataset.act==='fill'){ S.fill[t.dataset.k]=t.value; render(true); }
 });
 $('#stage').addEventListener('input',e=>{
   const t=e.target.closest('[data-act]'); if(!t) return;
@@ -1341,7 +1364,7 @@ $('#stage').addEventListener('input',e=>{
 });
 $('#stage').addEventListener('blur',e=>{
   const t=e.target.closest('[data-act]'); if(!t) return;
-  if(t.dataset.act==='ladder'){ const y=window.scrollY; render(); window.scrollTo(0,y); }
+  if(t.dataset.act==='ladder'){ render(true); }
 },true);
 
 /* ---- invocation overlay ---- */
@@ -1356,12 +1379,12 @@ function openInvocation(id){
   $('#ovl').classList.add('show');
 }
 $('#ovlClose').onclick=()=>$('#ovl').classList.remove('show');
-$('#ovlDone').onclick=()=>{ if(ovlId){ S.called[ovlId]=true; bell(587,1.2); } $('#ovl').classList.remove('show'); render(); };
+$('#ovlDone').onclick=()=>{ if(ovlId){ S.called[ovlId]=true; bell(587,1.2); } $('#ovl').classList.remove('show'); render(true); };
 
 /* ============================================================ DRAWER */
 const TABS=[
  ['deities','The Eight'],['hour','The hour'],['boat','The boat'],['dark','Dark & relay'],
- ['cautions','Cautions'],['crib','Host’s crib'],['why','Why tonight']
+ ['cautions','Cautions'],['crib','If it goes sideways'],['why','Why tonight']
 ];
 let tab='deities';
 function drawerBody(){
@@ -1379,7 +1402,7 @@ function drawerBody(){
   }
   if(tab==='hour'){
     const beats=[[':00','Open','The fires are lit — welcome, framing, the shape of the hour in three sentences.'],
-    [':05','Ward','Casting, then the safety brief out of ritual voice. Everyone touches their water.'],
+    [':05','Ward','Casting, then the physical check out of ritual voice. Touch your water.'],
     [':10','Call','Invocation of the Eight. Ganesha first; Wepwawet held back for the road.'],
     [':17','Name','The Naming — parchment, red ink, own hand. The Precision Ladder. Worth overrunning.'],
     [':29','Cut','The Cord — two named ends. Cut for what is finished, untie for what continues altered.'],
@@ -1387,7 +1410,7 @@ function drawerBody(){
     [':43','Fill','The Emptied Space — Wepwawet, and the formula said aloud with a date attached.'],
     [':50','Build','The Boat — write the farewell, bind the paper. Do not light.'],
     [':60','Launch','Eight o’clock, outdoors. Light, one push, hands off.'],
-    [':70','Close','Thanks and release in reverse order, Ganesha last. Water, food, land everyone.'],
+    [':70','Close','Thanks and release in reverse order, Ganesha last. Water, food, land yourself.'],
     ['dark','Sitting','The second sitting at your own true dark. Look, do not touch.']];
     return `<h2>The order of service</h2><p class="lede">Sixty minutes plus a fifteen-minute coda, plus the sitting at your own dark. Timings are the shape, not a cage.</p>
     <table class="tbl"><thead><tr><th>Clock</th><th>Beat</th><th>What happens</th></tr></thead><tbody>
@@ -1398,7 +1421,7 @@ function drawerBody(){
     <div class="card"><p><b>1 · The space that is now empty is</b> ______</p>
     <p><b>2 · Into it goes</b> ______ — one thing. Not a list. A list is how the old thing gets back in.</p>
     <p><b>3 · I will feed it by</b> ______ <b>, and I will do that by</b> ______ — one concrete action, with a date inside seven days.</p>
-    <p style="margin:0" class="muted"><i>Host's note:</i> if someone's answer to (2) is a version of the thing they just burned, gently send them back a rung. That is the old thing wearing a coat, and it is the single most common failure of release work.</p></div>`;
+    <p style="margin:0" class="muted">If what goes in is a version of the thing you just burned, go back a rung. That is the old thing wearing a coat, and it is the single most common failure of release work.</p></div>`;
   }
   if(tab==='boat'){
     return `<h2>The Boat</h2>
@@ -1426,7 +1449,7 @@ function drawerBody(){
     ['Los Angeles','19:38','20:36','36m'],['Phoenix','19:12','20:10','10m'],
     ['Tokyo · Sydney · Auckland · Delhi · Honolulu','—','already dark','none — you simply stay']];
     return `<h2>The Two Moments</h2>
-    <p class="lede">Eight o'clock is not dark. Say this out loud early, or half the circle spends the evening feeling they got the inferior version.</p>
+    <p class="lede">Eight o'clock is not dark. Know this before you start, or you will spend the evening quietly assuming you got the inferior version of the working.</p>
     <div class="card"><h4>First — eight o'clock. The launch.</h4>
     <p style="margin:0">This is the working and it does not move. Eight local is Kyoto's hour, and holding it is what makes the relay a chain rather than a scatter. You light, set it on the water, give it <b>one push</b>, and walk away. Whether you can see it glow is not the point and never was. <b>A lantern you cannot see is still lit.</b> The dead of Obon are not visible either.</p></div>
     <div class="card"><h4>Second — your own dark. The sitting.</h4>
@@ -1437,7 +1460,7 @@ function drawerBody(){
     <p class="tiny">Times for 16 August 2026, local. "True dark" is nautical twilight — the point at which a small flame on water actually reads against the background. <b>Anything over three hours means an LED</b>, because a tealight will not survive the wait.</p>
     <h3 style="margin-top:28px">The relay</h3>
     <p>Everyone lights at eight local, which is when Kyoto lights. The first lantern goes on in the Line Islands at 06:00 UTC on the sixteenth; the last in American Samoa at 07:00 UTC on the seventeenth. <b>Twenty-five hours, and for every one of them somebody among us has a light on the water.</b></p>
-    <p class="muted"><i>Host's note:</i> ask for the launch <b>time</b> at eight, and the <b>photo</b> at the second moment. The thread then holds both — a clean westward chain of times, and a slower trail of images following a couple of hours behind. That lag is the shape of the terminator crossing the earth.</p>`;
+    <p class="muted">Post your launch <b>time</b> at eight, and your <b>photo</b> at the second moment. The thread then holds both — a clean westward chain of times, and a slower trail of images following a couple of hours behind. That lag is the shape of night crossing the earth.</p>`;
   }
   if(tab==='cautions'){
     return `<h2>Cautions</h2>
@@ -1448,7 +1471,7 @@ function drawerBody(){
     <p style="margin:0"><b>No outdoor space at all?</b> Balcony with an LED, or indoors in a washing-up bowl on a towel. A soup bowl is a river. Scale was never the point; the single push is the point.</p></div>`;
   }
   if(tab==='crib'){
-    return `<h2>Host's crib</h2><p class="lede">The four that come up every time.</p>
+    return `<h2>If it goes sideways</h2><p class="lede">The things that come up every time. None of them means you are doing it wrong.</p>
     ${CRIB.map(c=>`<div class="card"><h4>${esc(c[0])}</h4><p style="margin:0">${c[1]}</p></div>`).join('')}
     <div class="card deep"><h4>Materials, at a glance</h4>
     <p><b>The hour —</b> cauldron or chalice, candles, cord, parchment, red ink, blade or scissors, offerings, water in reach.</p>
