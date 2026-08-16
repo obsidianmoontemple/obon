@@ -316,6 +316,28 @@
   .privacy{display:flex;gap:9px;align-items:flex-start;color:var(--faint);font-size:.82rem;margin:14px 0;line-height:1.5}
   .privacy span{flex:none;color:var(--ok)}
 
+  /* ---- lock panel ---- */
+  .gatep{
+    border:1px solid var(--line2);border-left:3px solid var(--ember2);border-radius:0 4px 4px 0;
+    background:linear-gradient(90deg,rgba(224,129,60,.07),var(--panel) 60%);
+    padding:16px 18px;margin:30px 0 6px;
+  }
+  .gatep.open{border-left-color:var(--ok);background:linear-gradient(90deg,rgba(127,174,122,.07),var(--panel) 60%)}
+  .gatep.preview{border-left-color:var(--ash);background:rgba(154,168,176,.06)}
+  .gatep h4{margin-bottom:11px}
+  .gatep.open h4{color:var(--ok)}
+  .gatep.preview h4{color:var(--ash)}
+  .gr{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:.93rem;color:var(--dim)}
+  .gr .gb{width:17px;flex:none;text-align:center;color:var(--faint);font-family:var(--mono);font-size:12px}
+  .gr.ok{color:var(--ok)}
+  .gr.ok .gb{color:var(--ok)}
+  .gr .gclock{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--ember);font-style:normal;white-space:nowrap}
+  .gr.ok .gclock{color:var(--faint)}
+  .btn.locked{background:var(--panel2)!important;border-color:var(--line)!important;color:var(--faint)!important;
+    opacity:1;cursor:not-allowed;font-family:var(--mono);letter-spacing:0}
+  .btn.locked:hover{border-color:var(--line)!important;background:var(--panel2)!important}
+  #stepno{cursor:pointer;user-select:none;padding:6px 4px}
+
   @media (max-width:600px){
     .drow{grid-template-columns:1fr;gap:2px}
     .drow dt{padding-top:0}
@@ -398,8 +420,30 @@ const EVENT = { y:2026, m:8, d:16, hour:20 };   // 16 August 2026, 20:00 local
 const S = {                                      // in-memory state only
   step:0, lat:null, lon:null, place:null, sound:true, scale:1,
   called:{}, dopen:{}, ladder:{}, fill:{}, farewell:'', cordMode:null, cordEnds:{},
-  checks:{}, lit:false, pushed:false, sat:false
+  checks:{}, lit:false, pushed:false, sat:false,
+  confirms:{}, timerDone:{}, geoDecided:false, preview:false, reached:0
 };
+
+/* --------------------------------------------------------------- STORAGE
+   Progress is remembered on this device so a locked screen can be left and
+   come back to — you can close the tab at seven and return at eight.
+   What you WRITE is never saved: the ladder, the farewell, the filling lines
+   and the cord ends live in this tab only and die with it. */
+const KEEP=['step','lat','lon','place','called','checks','confirms','timerDone',
+            'geoDecided','lit','pushed','sat','cordMode','reached','sound','scale'];
+let storageOK=true;
+function save(){
+  if(!storageOK) return;
+  try{ const o={}; KEEP.forEach(k=>o[k]=S[k]);
+    localStorage.setItem('spellhour-'+EVENT.y+'-'+EVENT.m+'-'+EVENT.d,JSON.stringify(o));
+  }catch(e){ storageOK=false; }
+}
+function load(){
+  try{ const raw=localStorage.getItem('spellhour-'+EVENT.y+'-'+EVENT.m+'-'+EVENT.d);
+    if(!raw) return; const o=JSON.parse(raw); KEEP.forEach(k=>{ if(o[k]!==undefined) S[k]=o[k]; });
+  }catch(e){ storageOK=false; }
+}
+function wipe(){ try{ localStorage.removeItem('spellhour-'+EVENT.y+'-'+EVENT.m+'-'+EVENT.d);}catch(e){} }
 
 /* ---------------------------------------------------------------- CONTENT */
 
@@ -805,7 +849,9 @@ const STEPS=[
     <p class="muted" style="margin:0" id="rbWord"></p>
   </div>
 
-  <div class="privacy"><span>●</span><div><b style="color:var(--dim)">Nothing you type here is stored or sent.</b> No account, no cookie, no server. It lives in this browser tab and dies when you close it — which is the correct arrangement for a working in which people write down the worst true thing they know about themselves.</div></div>
+  <div class="privacy"><span>●</span><div><b style="color:var(--dim)">Nothing you write is stored or sent anywhere.</b> The ladder, the farewell, the filling lines — those live in this tab only and die when you close it, which is the correct arrangement for a working where you write down the worst true thing you know about yourself. Your <i>progress</i> is kept on this device alone, so a screen that is holding you until eight o'clock can be left and come back to. No account, no server, nothing leaves the machine.</div></div>
+  ${S.reached>0?`<div class="banner"><b>You have been here before.</b> Your place is kept — you are on screen ${S.step+1} of ${STEPS.length}. Use Continue to pick it up, or the button below to start clean.</div>
+  <div class="btnrow"><button class="btn ghost sm" data-act="wipe">Clear my progress and start again</button></div>`:''}
   `;
  },
  mount(){ tickers.stats=()=>{ const e=$('#liveStats'); if(e) e.innerHTML=statBlock();
@@ -830,7 +876,8 @@ const STEPS=[
   </div>
   <p class="eyebrow" style="margin-top:26px">Every station, live</p>
   <div class="zlist" id="zlist"></div>
-  <p class="tiny" style="margin-top:16px">In a few places the wave steps by three-quarters of an hour rather than a whole one — Chatham Islands, Nepal, the Marquesas — which is a pleasing thing to know and no use whatsoever.</p>`;
+  <p class="tiny" style="margin-top:16px">In a few places the wave steps by three-quarters of an hour rather than a whole one — Chatham Islands, Nepal, the Marquesas — which is a pleasing thing to know and no use whatsoever.</p>
+  ${confirmBtn('relay','I have found my own line in the list','Found it')}`;
  },
  mount(){ tickers.relay=()=>{
     const z=$('#zlist'); if(z) z.innerHTML=relayRows();
@@ -847,7 +894,7 @@ const STEPS=[
 },
 
 /* ---------------------------------------------------------- 2 · READY */
-{id:'ready', name:'Materials & safety', eyebrow:'Before anything is lit', mins:5,
+{id:'ready', name:'Materials & safety', eyebrow:'Before anything is lit', mins:3,
  render(){
   const hour=[
    ['Cauldron or chalice','Heatproof, dry, and larger than you think you need.'],
@@ -886,18 +933,16 @@ const STEPS=[
   <p class="eyebrow" style="margin-top:28px">For the boat</p>
   <p class="chkmeter">${n('b')} / ${boat.length}</p>${list(boat,'b')}
   <p class="eyebrow" style="margin-top:28px">The safety gate</p>
-  <p class="muted">All six, please. The working does not move on until they are ticked.</p>
+  <p class="muted">All six. This screen does not open until every box on it is ticked — not as bureaucracy, but because the one you would have skipped is the one that matters.</p>
   <p class="chkmeter">${n('g')} / ${gate.length}</p>${list(gate,'g')}
   <div class="banner ${n('g')===gate.length?'':'danger'}">${n('g')===gate.length
     ? '<b>Good. You are clear to work.</b> A working that puts you in hospital has not banished anything.'
-    : '<b>Not yet.</b> Six ticks above before we go on. A working that puts you in hospital has not banished anything.'}</div>`;
+    : '<b>Not yet.</b> Every box on this screen, including the six above. The one you would have skipped is the one that matters. A working that puts you in hospital has not banished anything.'}</div>`;
  },
- canNext(){ return Object.keys(S.checks).filter(x=>x.startsWith('g')&&S.checks[x]).length>=6; },
- blockMsg:'Tick all six of the safety gate first.'
 },
 
 /* ---------------------------------------------------------- 3 · BOAT BUILD */
-{id:'build', name:'Build the boat', eyebrow:'Funagata — the boat shape', mins:15,
+{id:'build', name:'Build the boat', eyebrow:'Funagata — the boat shape', mins:4,
  render(){
   const led=needsLED(), gap=gapToDark();
   let verdict='';
@@ -937,6 +982,7 @@ const STEPS=[
   <p>Obon does not end by pretending the dead were never there. It ends by feeding them, sitting with them, and then lighting a road and saying <i>go well</i>. Everything you burn tonight gets the same treatment. You are not incinerating what you hated. You are lighting the way out for what you are done with — and then staying in the room long enough to fill the gap.</p>
   <div class="say alone">Tonight the fire is not for destruction. It is for the journey out. I am not here to burn what I hated. I am here to light the road for what I am done with, and to stay long enough to fill the space it leaves.</div>
   <p class="aside">Read it aloud even if there is nobody to hear it. The mouth commits what the mind will renegotiate later.</p>
+  ${confirmBtn('open','I have said it aloud','Said aloud')}
   <p class="muted">Nothing gets lit until the next screen. The check comes first.</p>`;}
 },
 
@@ -951,7 +997,9 @@ const STEPS=[
     <p style="margin:0">Then: hair back, sleeves up. Nothing swallowed, nothing burned in a closed room, no accelerants ever.</p>
   </div>
   <p>Fix the boat plan in your head now too, so you are not improvising in the dark later: <b>frame already built, paper still blank, launch at eight local, outdoors, and a second sitting at your own true dark.</b></p>
-  <p class="aside">If you are somewhere you cannot burn at all, you are not doing a lesser version. You will dissolve, bury, or shred — and Marzanna is drowned as often as she is burned.</p>`;}
+  <p class="aside">If you are somewhere you cannot burn at all, you are not doing a lesser version. You will dissolve, bury, or shred — and Marzanna is drowned as often as she is burned.</p>
+  ${confirmBtn('cast','The circle is cast','Cast')}
+  ${confirmBtn('water','My hand is on the water — I have actually touched it','Water touched')}`;}
 },
 
 /* ---------------------------------------------------------- 6 · CALL */
@@ -1014,7 +1062,9 @@ const STEPS=[
   <p class="muted">Roughly a minute per rung. Each opens as you fill the one above. Take longer here than the timer suggests — this is the beat worth overrunning.</p>
   ${rungs}
   <div class="privacy"><span>●</span><div>Nothing here is stored or transmitted. When you close this tab it is gone. Copy it to your parchment in your own hand — that is the copy that matters.</div></div>
-  ${done?`<div class="btnrow"><button class="btn primary wide" data-act="parch">Compose my parchment ↓</button></div><div id="parchOut"></div>`:'<div class="banner">Fill all six rungs and the parchment will compose itself.</div>'}`;
+  ${done?`<div class="btnrow"><button class="btn primary wide" data-act="parch">Compose my parchment ↓</button></div><div id="parchOut"></div>
+  ${confirmBtn('parch','I have written it out by hand, in red, on the parchment','Written by hand')}`
+  :'<div class="banner">Fill all six rungs and the parchment will compose itself. This screen does not open until it is done — vague input, vague working.</div>'}`;
  }
 },
 
@@ -1043,7 +1093,8 @@ const STEPS=[
   <div class="field"><label>This end is —</label>
     <input class="inp" data-act="cordend" data-k="b" value="${esc(S.cordEnds.b||'')}" placeholder="the arrangement, the habit, the hold — not a person's name"></div>
   ${guide}
-  <div class="banner danger"><b>Nothing living gets cut.</b> No hair, no skin, no blood tonight. The cord is the cord.</div>`;
+  <div class="banner danger"><b>Nothing living gets cut.</b> No hair, no skin, no blood tonight. The cord is the cord.</div>
+  ${S.cordMode?confirmBtn('cord',S.cordMode==='cut'?'The cord is cut':'The cord is untied','The cord is parted'):''}`;
  }
 },
 
@@ -1058,7 +1109,9 @@ const STEPS=[
     <p style="font-size:1.15rem;font-style:italic;color:#f4eae0;margin:0">${esc(S.ladder.closing)}</p></div>`:''}
   <div class="card"><h4>If you cannot burn</h4>
   <p style="margin:0">Rental, roommates, no ventilation, attending from bed. These are <b>equivalent, not lesser</b>: <b>dissolve</b> the parchment in water and pour it out at a drain or a root; <b>bury</b> it; or <b>shred</b> it and part with the pieces in two directions. Marzanna is drowned as often as she is burned.</p></div>
-  <div class="btnrow"><button class="btn ${S.checks.burned?'':'primary'} wide" data-act="burned">${S.checks.burned?'✓ It is ash':'It is ash'}</button></div>`;
+  ${confirmBtn('read','I have read it aloud','Read aloud')}
+  <div class="btnrow"><button class="btn ${S.checks.burned?'':'primary'} wide" data-act="burned">${S.checks.burned?'✓ It is ash, and fully out':'It is ash, and fully out'}</button></div>
+  <p class="tiny">Only tick that when there is no glow left at all. This screen holds until you do, and it is holding you there on purpose.</p>`;
  }
 },
 
@@ -1091,7 +1144,8 @@ const STEPS=[
   <div class="banner"><b>Check your answer to (2) before you say it.</b> If what goes in is a version of the thing you just burned — a better relationship of the same shape, a healthier version of the same job, the same arrangement with nicer people in it — go back and write something else. That is the old thing wearing a coat, and it is the single most common failure of release work. It will feel like progress right up until it doesn't.</div>
   ${ok?`<div class="card deep"><h4>Say this aloud, now</h4>
     <p style="font-size:1.1rem;font-style:italic;color:#f4eae0;margin:0">The space that is now empty is ${esc(S.fill.space)}. Into it goes ${esc(S.fill.into)}. I will feed it by ${esc(S.fill.feed)}, and I will do that by ${esc(new Date(S.fill.when+'T12:00').toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'}))}.</p>
-    </div><div class="btnrow"><button class="btn sm" data-act="copyfill">Copy it</button></div>`:''}
+    </div><div class="btnrow"><button class="btn sm" data-act="copyfill">Copy it</button></div>
+    ${confirmBtn('fill','I have said all three out loud','Said out loud')}`:''}
   <div class="say">Opener of the Ways, who goes first and clears the road — the ground is bare now. Do not leave it bare. Open the way I named, and go ahead of me on it, so that what left tonight finds the road closed behind it.</div>`;
  }
 },
@@ -1136,9 +1190,12 @@ const STEPS=[
   <p class="lede">Take it outside. Light it, set it on the water, <b>give it a single push, and do not touch it again.</b> A river supplies the current; in a tub you supply it once and then you are done supplying it. That is the entire working.</p>
   <div class="banner"><b>If the wind parks it against the side, leave it.</b> Where it ends up is not yours to arrange any more. Everyone who reaches back in to straighten it will learn something about themselves.</div>
   <div class="say">One push. That is the last thing I do for this. Go well, and go all the way.</div>
+  ${Date.now()<myLaunch().getTime()&&!S.preview
+    ? `<div class="banner"><b>These do not open until eight.</b> That is the whole point of the relay — the chain only holds if everyone keeps the hour. Leave this page open, or close it and come back: your progress is kept on this device, so the working will be exactly where you left it.</div>`
+    : ''}
   <div class="btnrow">
-    <button class="btn ${S.lit?'':'primary'}" data-act="lit">${S.lit?'✓ Lit':'It is lit'}</button>
-    <button class="btn ${S.pushed?'':'primary'}" data-act="pushed">${S.pushed?'✓ Pushed — hands off':'One push given'}</button>
+    <button class="btn ${S.lit?'':'primary'}" data-act="lit" ${Date.now()<myLaunch().getTime()&&!S.preview?'disabled':''}>${S.lit?'✓ Lit':'It is lit'}</button>
+    <button class="btn ${S.pushed?'':'primary'}" data-act="pushed" ${(!S.lit||(Date.now()<myLaunch().getTime()&&!S.preview))?'disabled':''}>${S.pushed?'✓ Pushed — hands off':'One push given'}</button>
   </div>
   ${S.pushed?`<div class="card deep"><h4>Post your launch to the relay thread</h4>
     <p class="muted">City and local time, nothing more. The photo comes later, at your own dark.</p>
@@ -1186,7 +1243,10 @@ const STEPS=[
     <p>Do not straighten it, do not relight it, do not nudge it back toward the middle. <b>You are returning to see where it got to without you</b> — and the whole gap between the two moments is time in which you had no say in the matter. That is the part that does the work.</p>
     <p style="margin:0">Some will come back to a boat still burning against the side of the tub. Some to one that went out an hour ago. Some to one that has drifted nowhere at all. <b>None of these is the wrong result.</b></p></div>
   <div class="banner calm">${ss?`Sunset where you are: <b>${fmtLocal(ss,tz)}</b>. `:''}${dk?`True dark: <b>${fmtLocal(dk,tz)}</b>.`:S.lat===null?'':'You get no true dark tonight — take the darkest hour you get, around one in the morning, or take the twilight and be content.'}</div>
-  <div class="btnrow"><button class="btn ${S.sat?'':'primary'} wide" data-act="sat">${S.sat?'✓ I sat with it':'I have sat with it'}</button></div>
+  ${(()=>{const dk=darkToday(); const early=dk&&Date.now()<dk.getTime()&&!S.preview;
+    return early?`<div class="banner"><b>Not yet — it is still light where you are.</b> This one will not open until true dark. Close the page if you like; it remembers. Come back when the sky has finished.</div>`:'';})()}
+  <div class="btnrow"><button class="btn ${S.sat?'':'primary'} wide" data-act="sat"
+    ${(()=>{const dk=darkToday();return dk&&Date.now()<dk.getTime()&&!S.preview?'disabled':'';})()}>${S.sat?'✓ I sat with it':'I have sat with it'}</button></div>
   ${S.sat?`<div class="card deep"><h4>Now the photo, for the relay thread</h4>
     <p class="muted">The thread carries two waves — times running clean round the earth, and pictures following a couple of hours behind. That gap is night crossing the world.</p>
     <p style="font-family:var(--mono);font-size:.9rem;color:var(--gold);background:var(--panel2);padding:12px 14px;border-radius:3px">${esc(sittingLine())}</p>
@@ -1242,6 +1302,96 @@ function parchmentText(){
     (L.closing||'This account is closed as of tonight.')].join('\n');
 }
 
+/* ============================================================ LOCKS
+   A screen does not open until the work on it is actually done, and the beat
+   does not end before its time. Back is always allowed; forward is earned. */
+function nCheck(re){ return Object.keys(S.checks).filter(k=>re.test(k)&&S.checks[k]).length; }
+function confirmBtn(k,off,on){
+  return `<div class="btnrow"><button class="btn ${S.confirms[k]?'':'primary'} wide"
+    data-act="confirm" data-k="${k}">${S.confirms[k]?'✓ '+on:off}</button></div>`;
+}
+function needsFor(id){
+  const L=S.ladder, F=S.fill;
+  switch(id){
+   case 'setup':   return [{t:'Set where you are, or skip it deliberately', ok:S.geoDecided||S.lat!==null}];
+   case 'relay':   return [{t:'Find your own line in the list', ok:!!S.confirms.relay}];
+   case 'ready':   return [{t:'Materials for the hour — all eight', ok:nCheck(/^h\d/)===8},
+                           {t:'Materials for the boat — all seven', ok:nCheck(/^b\d/)===7},
+                           {t:'The safety gate — all six', ok:nCheck(/^g\d/)===6}];
+   case 'build':   return [{t:'All five build steps done', ok:nCheck(/^B\d/)===5}];
+   case 'open':    return [{t:'Say the line aloud', ok:!!S.confirms.open}];
+   case 'ward':    return [{t:'Circle cast', ok:!!S.confirms.cast},
+                           {t:'Hand physically on your water', ok:!!S.confirms.water}];
+   case 'call':    return [{t:'All eight called', ok:Object.keys(S.called).filter(k=>S.called[k]).length===8}];
+   case 'name':    return [{t:'All six rungs written', ok:LADDER.every(r=>(L[r.k]||'').trim())},
+                           {t:'Copied onto the parchment in your own hand', ok:!!S.confirms.parch}];
+   case 'cord':    return [{t:'Cut or untie chosen', ok:!!S.cordMode},
+                           {t:'Both ends named', ok:!!(S.cordEnds.a||'').trim()&&!!(S.cordEnds.b||'').trim()},
+                           {t:'The cord is parted', ok:!!S.confirms.cord}];
+   case 'burn':    return [{t:'Read aloud before it went in', ok:!!S.confirms.read},
+                           {t:'It is ash — and fully out', ok:!!S.checks.burned}];
+   case 'fill':    return [{t:'All four lines filled', ok:!!(F.space||'').trim()&&!!(F.into||'').trim()&&!!(F.feed||'').trim()&&!!F.when},
+                           {t:'Said out loud', ok:!!S.confirms.fill}];
+   case 'boatwrite':return[{t:'Farewell written on the paper', ok:!!S.farewell.trim()},
+                           {t:'Inside or outside chosen', ok:!!S.checks.side},
+                           {t:'Bound — all four', ok:nCheck(/^W\d/)===4}];
+   case 'launch':  return [{t:'It is eight o’clock where you are', ok:Date.now()>=myLaunch().getTime(), clock:'launch'},
+                           {t:'Lit', ok:S.lit},
+                           {t:'One push given, hands off', ok:S.pushed}];
+   case 'close':   return [{t:'All eight thanked and released', ok:nCheck(/^R/)===8}];
+   case 'sitting': {const dk=darkToday();
+                    return [{t:'It is dark where you are', ok:S.lat===null?true:(dk?Date.now()>=dk.getTime():true), clock:'dark'},
+                            {t:'Sat with it — looked, did not touch', ok:S.sat}];}
+  }
+  return [];
+}
+/* seconds still owed to this beat */
+function timeOwed(){
+  const st=STEPS[S.step];
+  if(S.preview||!st.mins||S.timerDone[st.id]) return 0;
+  return tLeft();
+}
+function gateState(){
+  const st=STEPS[S.step];
+  const need=S.preview?[]:needsFor(st.id);
+  const undone=need.filter(n=>!n.ok);
+  return {need, undone, owed:timeOwed(), open:undone.length===0 && timeOwed()===0};
+}
+function gatePanelHTML(){
+  const g=gateState(), st=STEPS[S.step];
+  if(S.preview) return `<div class="gatep preview"><h4>Preview mode — locks are off</h4>
+    <p style="margin:0" class="tiny">Tap the step counter three times to put them back on.</p></div>`;
+  if(!g.need.length && !st.mins) return '';
+  const rows=g.need.map(n=>`<div class="gr ${n.ok?'ok':''}"><span class="gb">${n.ok?'✓':'○'}</span>
+    <span>${esc(n.t)}</span>${n.clock?`<em class="gclock" data-clock="${n.clock}"></em>`:''}</div>`).join('');
+  const t = st.mins? `<div class="gr ${timeOwed()===0?'ok':''}" id="grTime"><span class="gb">${timeOwed()===0?'✓':'○'}</span>
+    <span>Stay with this beat</span><em class="gclock" id="gtLeft"></em></div>` : '';
+  return `<div class="gatep ${g.open?'open':''}">
+    <h4>${g.open?'This screen is open':'This screen is holding'}</h4>
+    ${rows}${t}
+    ${g.open?'<p class="tiny" style="margin:10px 0 0">Take longer if the room needs it. Continue when you are ready.</p>':''}
+  </div>`;
+}
+function updateGateUI(){
+  const g=gateState(), st=STEPS[S.step], nx=$('#btnNext');
+  const last=S.step===STEPS.length-1;
+  nx.disabled=!g.open;
+  nx.classList.toggle('locked',!g.open);
+  if(g.open){ nx.textContent = last ? 'Begin again' : 'Continue →'; }
+  else if(g.undone.length){ nx.textContent = '🔒 '+g.undone.length+' still to do'; }
+  else { nx.textContent = '🔒 '+dur(g.owed*1000); }
+  const gt=$('#gtLeft'); if(gt) gt.textContent = timeOwed()>0 ? dur(timeOwed()*1000)+' left' : 'done';
+  const rt=$('#grTime'); if(rt){ rt.classList.toggle('ok',timeOwed()===0);
+    rt.querySelector('.gb').textContent = timeOwed()===0?'✓':'○'; }
+  document.querySelectorAll('.gclock[data-clock]').forEach(el=>{
+    if(el.dataset.clock==='launch'){ const d=myLaunch()-Date.now();
+      el.textContent = d>0 ? dur(d) : 'now'; }
+    if(el.dataset.clock==='dark'){ const dk=darkToday();
+      if(!dk){el.textContent='—';return;} const d=dk-Date.now();
+      el.textContent = d>0 ? dur(d) : 'now'; }
+  });
+}
+
 /* ============================================================ ENGINE */
 let tickers={};
 /* render(true) = a "soft" redraw after ticking a box or typing: it keeps your
@@ -1252,23 +1402,29 @@ function render(soft){
   const af = soft ? ' style="animation:none"' : '';
   tickers={};
   const st=STEPS[S.step];
-  $('#stage').innerHTML=`<div class="screen"${af}>${st.render()}</div>`;
+  $('#stage').innerHTML=`<div class="screen"${af}>${st.render()}${gatePanelHTML()}</div>`;
   $('#brandsub').textContent=st.name;
-  $('#stepno').textContent=(S.step+1)+' / '+STEPS.length;
+  $('#stepno').textContent=(S.step+1)+' / '+STEPS.length+(S.preview?' ·P':'');
   $('#progbar').style.width=((S.step)/(STEPS.length-1)*100)+'%';
   $('#btnBack').style.visibility=S.step===0?'hidden':'visible';
-  const nx=$('#btnNext');
-  nx.textContent = S.step===STEPS.length-1 ? 'Begin again' : 'Continue →';
   if(st.mount) st.mount();
   if(!soft) setupTimer(st.mins||0);
+  updateGateUI();
   tick();
   window.scrollTo(0,y);
+  save();
 }
 function go(n){
-  const st=STEPS[S.step];
-  if(n>S.step && st.canNext && !st.canNext()){ flash(st.blockMsg||'Not yet.'); return; }
+  if(n>S.step){
+    const g=gateState();
+    if(!g.open){
+      flash(g.undone.length ? 'Not yet — '+g.undone[0].t.toLowerCase() : 'Not yet — '+dur(g.owed*1000)+' still owed to this beat');
+      const p=document.querySelector('.gatep'); if(p) p.scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+  }
   S.step=Math.max(0,Math.min(STEPS.length-1,n));
-  if(S.step===0 && n>=STEPS.length){ S.step=0; }
+  S.reached=Math.max(S.reached||0,S.step);
   render();
 }
 function flash(msg){
@@ -1279,36 +1435,80 @@ function flash(msg){
 }
 
 /* ---- timer ---- */
-let T={total:0,left:0,run:false,iv:null};
+/* Wall-clock, not a decrementing counter: browsers throttle background tabs to
+   about one tick a minute, so a counting-down number would stall the moment
+   somebody checked their phone. This measures elapsed real time instead. */
+let T={total:0,endAt:0,held:0,run:false,iv:null};
+function tLeft(){
+  if(T.total<=0) return 0;
+  return T.run ? Math.max(0,Math.ceil((T.endAt-Date.now())/1000)) : T.held;
+}
 function setupTimer(mins){
   clearInterval(T.iv); T.iv=null; T.run=false;
-  T.total=mins*60; T.left=T.total;
+  const st=STEPS[S.step];
+  const served = S.preview || S.timerDone[st.id];
+  T.total=mins*60; T.held=served?0:T.total; T.endAt=0;
   $('#timerbox').style.display = mins>0 ? 'flex':'none';
   $('#timerbox').classList.remove('run'); $('#tPlay').textContent='▶';
   drawTimer();
+  if(mins>0 && !served) startTimer();   // the beat begins the moment you arrive
 }
 function drawTimer(){
-  const m=Math.floor(T.left/60), s=T.left%60;
+  const v=tLeft(), m=Math.floor(v/60), s=v%60;
   $('#tDisp').textContent=m+':'+String(s).padStart(2,'0');
 }
-$('#tPlay').onclick=()=>{
-  if(T.run){ clearInterval(T.iv); T.run=false; $('#tPlay').textContent='▶'; $('#timerbox').classList.remove('run'); }
-  else{ T.run=true; $('#tPlay').textContent='❚❚'; $('#timerbox').classList.add('run');
-    T.iv=setInterval(()=>{ T.left--; drawTimer();
-      if(T.left<=0){ clearInterval(T.iv); T.run=false; $('#tPlay').textContent='▶';
-        $('#timerbox').classList.remove('run'); bell(); flash('Time on this beat. Overrun it if the room needs it.'); }
-    },1000); }
-};
-$('#tReset').onclick=()=>{ clearInterval(T.iv); T.run=false; T.left=T.total; drawTimer();
-  $('#tPlay').textContent='▶'; $('#timerbox').classList.remove('run'); };
+function startTimer(){
+  if(T.run||T.held<=0) return;
+  T.run=true; T.endAt=Date.now()+T.held*1000;
+  $('#tPlay').textContent='❚❚'; $('#timerbox').classList.add('run');
+  clearInterval(T.iv);
+  T.iv=setInterval(()=>{
+    drawTimer(); updateGateUI();
+    if(tLeft()<=0) finishTimer();
+  },500);
+}
+function finishTimer(){
+  clearInterval(T.iv); T.run=false; T.held=0;
+  $('#tPlay').textContent='▶'; $('#timerbox').classList.remove('run');
+  S.timerDone[STEPS[S.step].id]=true; save();
+  bell(); render(true);
+  flash('The beat is served. Stay longer if you need to.');
+}
+function pauseTimer(){ T.held=tLeft(); clearInterval(T.iv); T.run=false;
+  $('#tPlay').textContent='▶'; $('#timerbox').classList.remove('run'); drawTimer(); updateGateUI(); }
+$('#tPlay').onclick=()=>{ T.run?pauseTimer():startTimer(); };
+$('#tReset').onclick=()=>{ pauseTimer(); const st=STEPS[S.step];
+  T.held = S.timerDone[st.id] ? 0 : T.total;
+  drawTimer(); updateGateUI(); if(T.held>0) startTimer(); };
+/* coming back to the tab: catch up immediately rather than on the next tick */
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden){
+  if(T.run && tLeft()<=0) finishTimer(); else { drawTimer(); updateGateUI(); } }});
 
 /* ---- global tick ---- */
-function tick(){ for(const k in tickers){ try{tickers[k]();}catch(e){} } }
+function tick(){ for(const k in tickers){ try{tickers[k]();}catch(e){} } updateGateUI(); }
 setInterval(tick,1000);
 
 /* ---- nav ---- */
-$('#btnBack').onclick=()=>go(S.step-1);
-$('#btnNext').onclick=()=>{ if(S.step===STEPS.length-1){ S.step=0; render(); } else go(S.step+1); };
+$('#btnBack').onclick=()=>{ S.step=Math.max(0,S.step-1); render(); };
+$('#btnNext').onclick=()=>{
+  if(S.step===STEPS.length-1){
+    if(!gateState().open){ go(S.step+1); return; }
+    if(confirm('Clear everything and begin again from the first screen?')){
+      ['called','dopen','ladder','fill','checks','confirms','timerDone','cordEnds'].forEach(k=>S[k]={});
+      Object.assign(S,{step:0,farewell:'',cordMode:null,lit:false,pushed:false,sat:false,reached:0});
+      wipe(); render();
+    }
+    return;
+  }
+  go(S.step+1);
+};
+/* preview: triple-tap the step counter to lift the locks (for walking it through) */
+let tapN=0,tapT=0;
+$('#stepno').onclick=()=>{
+  const now=Date.now(); tapN = (now-tapT<800)?tapN+1:1; tapT=now;
+  if(tapN>=3){ tapN=0; S.preview=!S.preview;
+    flash(S.preview?'Preview mode — locks off':'Locks back on'); render(); }
+};
 
 /* ---- chrome ---- */
 $('#btnSound').onclick=e=>{ S.sound=!S.sound; e.currentTarget.classList.toggle('on',S.sound); if(S.sound) bell(660,.5); };
@@ -1322,6 +1522,8 @@ $('#stage').addEventListener('click',e=>{
   const b=e.target.closest('[data-act]'); if(!b) return;
   const a=b.dataset.act;
   if(a==='chk'){ S.checks[b.dataset.id]=!S.checks[b.dataset.id]; render(true); }
+  if(a==='confirm'){ const k=b.dataset.k; S.confirms[k]=!S.confirms[k];
+    if(S.confirms[k]) bell(494,1.1); render(true); }
   if(a==='cord'){ S.cordMode=b.dataset.v; render(true); }
   if(a==='side'){ S.checks.side=b.dataset.v; S.side=b.dataset.v; render(true); }
   if(a==='burned'){ S.checks.burned=!S.checks.burned; bell(392,1.8); render(true); }
@@ -1329,13 +1531,18 @@ $('#stage').addEventListener('click',e=>{
   if(a==='pushed'){ S.pushed=!S.pushed; if(S.pushed) bell(440,2.2); render(true); }
   if(a==='sat'){ S.sat=!S.sat; if(S.sat) bell(349,2.4); render(true); }
   if(a==='parch'){ $('#parchOut').innerHTML=parchmentHTML(); $('#parchOut').scrollIntoView({behavior:'smooth',block:'nearest'}); }
+  if(a==='wipe'){ if(confirm('Clear your saved progress and start from the beginning?')){
+    ['called','dopen','ladder','fill','checks','confirms','timerDone','cordEnds'].forEach(k=>S[k]={});
+    Object.assign(S,{step:0,farewell:'',cordMode:null,lit:false,pushed:false,sat:false,reached:0});
+    wipe(); render(); } }
   if(a==='copyparch') copy(parchmentText(),b);
   if(a==='copyrelay') copy(relayLine(),b);
   if(a==='copysit') copy(sittingLine(),b);
   if(a==='copyfill') copy(`The space that is now empty is ${S.fill.space}. Into it goes ${S.fill.into}. I will feed it by ${S.fill.feed}, and I will do that by ${S.fill.when}.`,b);
   if(a==='dopen'){ const id=b.dataset.d; S.dopen[id]=!S.dopen[id]; render(true); }
   if(a==='invoke'){ openInvocation(b.dataset.d); }
-  if(a==='skipgeo'){ $('#geoMsg').textContent='Fine — you will still get your launch time and your place in the relay. Only sunset and true dark need a location.'; }
+  if(a==='skipgeo'){ S.geoDecided=true; render(true);
+    $('#geoMsg').textContent='Fine — you still get your launch time and your place in the relay. Only sunset and true dark need a location, and the second sitting will simply not count down for you.'; }
   if(a==='geo'){
     const msg=$('#geoMsg'); msg.textContent='Asking your browser…';
     if(!navigator.geolocation){ msg.textContent='This browser will not share a location. Pick the nearest city instead.'; return; }
@@ -1358,9 +1565,9 @@ $('#stage').addEventListener('input',e=>{
   const t=e.target.closest('[data-act]'); if(!t) return;
   const a=t.dataset.act;
   if(a==='ladder'){ S.ladder[t.dataset.k]=t.value; }
-  if(a==='cordend'){ S.cordEnds[t.dataset.k]=t.value; }
-  if(a==='farewell'){ S.farewell=t.value; }
-  if(a==='fill'){ S.fill[t.dataset.k]=t.value; }
+  if(a==='cordend'){ S.cordEnds[t.dataset.k]=t.value; updateGateUI(); }
+  if(a==='farewell'){ S.farewell=t.value; updateGateUI(); }
+  if(a==='fill'){ S.fill[t.dataset.k]=t.value; updateGateUI(); }
 });
 $('#stage').addEventListener('blur',e=>{
   const t=e.target.closest('[data-act]'); if(!t) return;
@@ -1501,6 +1708,9 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ============================================================ BOOT */
+load();
+document.documentElement.style.setProperty('--scale',S.scale||1);
+$('#btnSound').classList.toggle('on',S.sound!==false);
 render();
 </script>
 </body>
