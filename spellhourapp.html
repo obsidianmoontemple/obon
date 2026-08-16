@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d0a09">
+<title>Spell Hour — The Unbinding</title>
+<meta name="description" content="A self-guiding working for release, unbinding and cord-cutting. Wherever you are, whenever you open it.">
+<style>
+  :root{
+    --bg:#0d0a09; --panel:#15100e; --panel2:#1c1512; --panel3:#241b16;
+    --line:#3a2a22; --line2:#523b2f;
+    --ink:#ece3da; --dim:#a89484; --faint:#7a6759;
+    --ember:#e0813c; --ember2:#c9663a; --ash:#9aa8b0; --gold:#d9b06a;
+    --ok:#7fae7a; --bad:#d4635a;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --topH:56px; --botH:72px;
+    --scale:1;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    background:var(--bg); color:var(--ink); font-family:var(--serif);
+    font-size:calc(17px * var(--scale)); line-height:1.6;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:radial-gradient(ellipse 90% 55% at 50% 108%, rgba(224,129,60,.15), transparent 70%);
+  }
+  button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  input,select,textarea{font:inherit;color:inherit}
+  a{color:var(--gold)}
+
+  /* ============ TOP BAR ============ */
+  .top{
+    position:fixed;top:0;left:0;right:0;height:var(--topH);z-index:60;
+    background:rgba(13,10,9,.94);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:10px;padding:0 12px;
+    padding-top:env(safe-area-inset-top);
+  }
+  .top .brand{
+    font-family:var(--sans);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--ember);font-weight:700;white-space:nowrap;
+  }
+  .top .brand b{display:block;color:var(--faint);font-weight:500;letter-spacing:.14em;font-size:9.5px;margin-top:2px}
+  .top .spacer{flex:1}
+  .iconbtn{
+    width:38px;height:38px;border-radius:3px;border:1px solid var(--line);
+    display:grid;place-items:center;color:var(--dim);font-size:15px;flex:none;
+  }
+  .iconbtn:hover{border-color:var(--line2);color:var(--ink)}
+  .iconbtn.on{border-color:var(--ember2);color:var(--ember)}
+  .progwrap{position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--line)}
+  .progbar{height:100%;background:linear-gradient(90deg,var(--ember2),var(--gold));width:0;transition:width .45s ease}
+  .stepno{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap}
+
+  /* ============ LAYOUT ============ */
+  main{
+    position:relative;z-index:1;
+    padding:calc(var(--topH) + 26px + env(safe-area-inset-top)) 20px calc(var(--botH) + 40px);
+    max-width:800px;margin:0 auto;
+  }
+  .screen{animation:fade .4s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .eyebrow{
+    font-family:var(--sans);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--ember);font-weight:700;margin:0 0 10px;
+  }
+  h1{font-size:clamp(1.9rem,6.5vw,2.7rem);line-height:1.08;margin:0 0 14px;font-weight:400;letter-spacing:-.01em}
+  h1 em{font-style:italic;color:var(--gold)}
+  h2{font-size:clamp(1.45rem,4.6vw,1.95rem);line-height:1.15;margin:0 0 12px;font-weight:400}
+  h3{font-size:1.15rem;font-weight:400;margin:0 0 8px}
+  h4{font-family:var(--sans);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ember);margin:0 0 12px;font-weight:700}
+  p{margin:0 0 14px}
+  .lede{color:var(--dim);font-size:1.05rem}
+  .muted{color:var(--faint);font-size:.9rem}
+  .tiny{font-size:.82rem;color:var(--faint)}
+  strong,b{color:var(--ink);font-weight:600}
+  hr.rule{border:0;border-top:1px solid var(--line);margin:30px 0}
+
+  /* ============ CARDS / BOXES ============ */
+  .card{border:1px solid var(--line);border-radius:4px;background:var(--panel);padding:20px 22px;margin:0 0 16px}
+  .card.warn{border-color:#6b3a24;background:rgba(224,129,60,.06)}
+  .card.deep{background:var(--panel2)}
+  .card.flat{background:none}
+  .card p:last-child,.card ul:last-child,.card ol:last-child{margin-bottom:0}
+  ul,ol{margin:0 0 14px;padding-left:20px;color:var(--dim)}
+  li{margin-bottom:8px}
+
+  /* spoken text */
+  .say{
+    border-left:2px solid var(--ember2);
+    background:linear-gradient(90deg,rgba(224,129,60,.08),transparent 72%);
+    padding:14px 0 14px 18px;margin:16px 0;
+    font-style:italic;color:#f4eae0;font-size:1.06rem;line-height:1.56;
+  }
+  .say::before{
+    content:"say this aloud";display:block;font-style:normal;font-family:var(--sans);
+    font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ember);margin-bottom:8px;
+  }
+  .say.host::before{content:"the host says"}
+  .say.all::before{content:"everyone, together"}
+
+  /* ============ BUTTONS ============ */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    font-family:var(--sans);font-size:13px;letter-spacing:.06em;font-weight:600;
+    padding:13px 20px;border-radius:3px;border:1px solid var(--line2);color:var(--ink);
+    background:var(--panel2);transition:.16s;text-align:center;
+  }
+  .btn:hover{border-color:var(--gold);background:var(--panel3)}
+  .btn.primary{background:linear-gradient(180deg,#c9663a,#a8502c);border-color:#e0813c;color:#fff}
+  .btn.primary:hover{background:linear-gradient(180deg,#e0813c,#c9663a)}
+  .btn.ghost{background:none;border-color:var(--line)}
+  .btn.wide{width:100%}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+  .btn.sm{padding:9px 14px;font-size:11.5px}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+
+  /* ============ BOTTOM BAR ============ */
+  .bot{
+    position:fixed;left:0;right:0;bottom:0;z-index:60;min-height:var(--botH);
+    background:rgba(13,10,9,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+    display:flex;align-items:center;gap:10px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));
+  }
+  .bot .nav{display:flex;gap:8px;flex:1;align-items:center}
+  .timerbox{
+    display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:3px;
+    padding:7px 10px;font-family:var(--mono);font-size:13px;color:var(--ash);flex:none;
+  }
+  .timerbox .t{min-width:44px;text-align:center;letter-spacing:.04em}
+  .timerbox.run{border-color:var(--ember2);color:var(--ember)}
+  .timerbox button{color:var(--faint);font-size:12px;padding:2px 4px}
+  .timerbox button:hover{color:var(--ink)}
+
+  /* ============ SETUP / STATUS ============ */
+  .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 16px}
+  .stat{border:1px solid var(--line);border-radius:4px;background:var(--panel);padding:14px 16px}
+  .stat .k{font-family:var(--sans);font-size:9.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+  .stat .v{font-size:1.32rem;color:var(--gold);line-height:1.2;font-variant-numeric:tabular-nums}
+  .stat .s{font-size:.82rem;color:var(--dim);margin-top:4px}
+  .stat.big .v{font-size:1.9rem;color:var(--ember)}
+
+  .field{margin:0 0 14px}
+  .field label{display:block;font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+  .inp,select.inp,textarea.inp{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:3px;
+    padding:12px 13px;color:var(--ink);font-family:var(--serif);font-size:1rem;outline:none;
+  }
+  .inp:focus{border-color:var(--ember2);background:var(--panel3)}
+  textarea.inp{resize:vertical;min-height:80px;line-height:1.5}
+  select.inp{font-family:var(--sans);font-size:.92rem;appearance:none;
+    background-image:linear-gradient(45deg,transparent 50%,var(--faint) 50%),linear-gradient(135deg,var(--faint) 50%,transparent 50%);
+    background-position:calc(100% - 18px) 20px,calc(100% - 13px) 20px;background-size:5px 5px;background-repeat:no-repeat}
+
+  .toggle{display:flex;gap:0;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+  .toggle button{flex:1;padding:12px 10px;font-family:var(--sans);font-size:12px;letter-spacing:.05em;color:var(--dim);background:var(--panel2)}
+  .toggle button.on{background:var(--ember2);color:#fff;font-weight:600}
+
+  /* ============ CHECKLIST ============ */
+  .chk{
+    display:flex;gap:13px;align-items:flex-start;padding:13px 14px;margin-bottom:8px;
+    border:1px solid var(--line);border-radius:3px;background:var(--panel);cursor:pointer;transition:.15s;
+  }
+  .chk:hover{border-color:var(--line2)}
+  .chk .box{
+    width:22px;height:22px;flex:none;border:1.5px solid var(--line2);border-radius:3px;
+    display:grid;place-items:center;font-size:13px;color:transparent;margin-top:1px;transition:.15s;
+  }
+  .chk.done{background:rgba(127,174,122,.07);border-color:rgba(127,174,122,.4)}
+  .chk.done .box{background:var(--ok);border-color:var(--ok);color:#0d0a09}
+  .chk .txt{flex:1;font-size:.97rem;color:var(--dim)}
+  .chk .txt b{display:block;color:var(--ink);margin-bottom:2px}
+  .chk.done .txt b{color:var(--ok)}
+  .chkmeter{font-family:var(--mono);font-size:11px;color:var(--faint);margin:0 0 14px;letter-spacing:.05em}
+
+  /* ============ DEITIES ============ */
+  .dgrid{display:grid;gap:10px;margin-bottom:18px}
+  .deity{border:1px solid var(--line);border-radius:4px;background:var(--panel);overflow:hidden;transition:.18s}
+  .deity.called{border-color:rgba(217,176,106,.5);background:linear-gradient(180deg,rgba(217,176,106,.06),transparent)}
+  .dhead{display:flex;align-items:center;gap:12px;padding:15px 16px;width:100%;text-align:left}
+  .dnum{
+    width:26px;height:26px;flex:none;border-radius:50%;border:1px solid var(--line2);
+    display:grid;place-items:center;font-family:var(--mono);font-size:11px;color:var(--faint);
+  }
+  .deity.called .dnum{background:var(--gold);border-color:var(--gold);color:#0d0a09}
+  .dname{flex:1;min-width:0}
+  .dname .n{font-size:1.08rem;line-height:1.25}
+  .dname .r{font-family:var(--mono);font-size:10.5px;color:var(--ash);margin-top:3px;letter-spacing:.02em}
+  .dtag{font-family:var(--sans);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);border:1px solid var(--line);padding:3px 7px;border-radius:2px;flex:none}
+  .dbody{padding:0 16px 16px;border-top:1px solid var(--line);margin-top:0;display:none}
+  .deity.open .dbody{display:block;padding-top:14px}
+  .drow{display:grid;grid-template-columns:96px 1fr;gap:14px;margin-bottom:10px;font-size:.93rem}
+  .drow dt{font-family:var(--sans);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding-top:4px}
+  .drow dd{margin:0;color:var(--dim)}
+  .glyph{color:var(--gold);font-size:1rem;margin-left:6px}
+
+  /* invocation overlay */
+  .ovl{
+    position:fixed;inset:0;z-index:90;background:rgba(8,6,5,.97);
+    display:none;flex-direction:column;padding:26px 22px calc(22px + env(safe-area-inset-bottom));
+    overflow-y:auto;animation:fade .3s ease;
+  }
+  .ovl.show{display:flex}
+  .ovl .inner{margin:auto;max-width:640px;width:100%;text-align:center}
+  .ovl .who{font-family:var(--sans);font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--ember);margin-bottom:20px}
+  .ovl .words{font-size:clamp(1.3rem,4.6vw,1.85rem);line-height:1.5;font-style:italic;color:#f7efe6;margin-bottom:12px}
+  .ovl .glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(224,129,60,.12),transparent 62%)}
+
+  /* ============ LADDER ============ */
+  .rung{border:1px solid var(--line);border-radius:4px;background:var(--panel);padding:16px 18px;margin-bottom:10px;opacity:.4;pointer-events:none;transition:.3s}
+  .rung.active,.rung.filled{opacity:1;pointer-events:auto}
+  .rung.filled{border-color:rgba(217,176,106,.35)}
+  .rhead{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px}
+  .rnum{width:26px;height:26px;flex:none;border-radius:3px;background:var(--panel2);border:1px solid var(--ember2);color:var(--ember);display:grid;place-items:center;font-family:var(--mono);font-size:11px}
+  .rung.filled .rnum{background:var(--gold);border-color:var(--gold);color:#0d0a09}
+  .rhead b{font-size:1.02rem;color:var(--ink);font-weight:600;line-height:1.35}
+  .rex{color:var(--faint);font-style:italic;font-size:.88rem;margin:2px 0 10px 38px}
+
+  /* parchment output */
+  .parch{
+    background:linear-gradient(170deg,#efe3cf,#e2d3ba);color:#2a1d14;
+    border-radius:3px;padding:26px 26px 28px;font-family:var(--serif);
+    box-shadow:0 10px 34px rgba(0,0,0,.55);margin:16px 0;
+  }
+  .parch h5{font-family:var(--sans);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:#8a4a1c;margin:0 0 16px;font-weight:700}
+  .parch .ln{margin-bottom:13px;line-height:1.5;font-size:1.02rem}
+  .parch .ln span{display:block;font-family:var(--sans);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#9a7a55;margin-bottom:3px}
+  .parch .seal{margin-top:20px;padding-top:14px;border-top:1px solid rgba(138,74,28,.3);font-style:italic;color:#8a4a1c;font-size:1.05rem}
+
+  /* ============ COUNTDOWN ============ */
+  .count{
+    text-align:center;border:1px solid var(--line);border-radius:5px;background:var(--panel);
+    padding:26px 20px;margin:0 0 16px;position:relative;overflow:hidden;
+  }
+  .count .lbl{font-family:var(--sans);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);margin-bottom:12px}
+  .count .clock{font-family:var(--mono);font-size:clamp(2.1rem,10vw,3.4rem);color:var(--ember);letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+  .count .sub{color:var(--dim);font-size:.92rem;margin-top:12px}
+  .count.now{border-color:var(--ember);background:linear-gradient(180deg,rgba(224,129,60,.14),var(--panel))}
+  .count.now .clock{color:var(--gold);font-size:clamp(1.5rem,6vw,2.2rem);font-family:var(--serif);font-style:italic}
+  .count.past{opacity:.75}
+  .count.past .clock{color:var(--ash)}
+
+  /* ============ RELAY ============ */
+  .relaybar{height:8px;border-radius:4px;background:var(--panel2);border:1px solid var(--line);position:relative;margin:16px 0 8px;overflow:hidden}
+  .relaybar .fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(217,176,106,.35),var(--ember));transition:width 1s linear}
+  .relaybar .me{position:absolute;top:-4px;width:2px;height:16px;background:var(--gold);box-shadow:0 0 8px var(--gold)}
+  .relayends{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--faint);margin-bottom:20px}
+
+  .zlist{border-top:1px solid var(--line)}
+  .z{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(58,42,34,.6);font-size:.93rem}
+  .zdot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--line2)}
+  .z.lit .zdot{background:var(--gold);box-shadow:0 0 7px rgba(217,176,106,.8)}
+  .z.now .zdot{background:var(--ember);box-shadow:0 0 12px var(--ember);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.35)}}
+  .z .zn{flex:1;color:var(--dim)}
+  .z.lit .zn,.z.now .zn{color:var(--ink)}
+  .z .zt{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap}
+  .z.now{background:linear-gradient(90deg,rgba(224,129,60,.1),transparent)}
+  .z.me{background:linear-gradient(90deg,rgba(217,176,106,.13),transparent)}
+  .z.me .zn::after{content:" — you";color:var(--gold);font-style:italic}
+
+  /* ============ TABLE ============ */
+  .tbl{width:100%;border-collapse:collapse;font-size:.88rem;margin:0 0 14px}
+  .tbl th{font-family:var(--sans);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);text-align:left;font-weight:600;padding:0 10px 8px 0;border-bottom:1px solid var(--line)}
+  .tbl td{padding:7px 10px 7px 0;border-bottom:1px solid rgba(58,42,34,.5);color:var(--dim)}
+  .tbl td:first-child{color:var(--ink)}
+  .tbl td.m{font-family:var(--mono);font-size:11.5px;color:var(--ash);white-space:nowrap}
+  .tbl tr.hi td{color:var(--gold)}
+
+  /* ============ DRAWER ============ */
+  .drawer{
+    position:fixed;inset:0;z-index:80;background:var(--bg);display:none;flex-direction:column;
+    animation:slideup .3s ease;
+  }
+  @keyframes slideup{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+  .drawer.show{display:flex}
+  .dwtop{
+    display:flex;align-items:center;gap:8px;padding:14px 14px;border-bottom:1px solid var(--line);
+    padding-top:calc(14px + env(safe-area-inset-top));flex:none;
+  }
+  .dwtabs{display:flex;gap:6px;overflow-x:auto;padding:10px 14px;border-bottom:1px solid var(--line);flex:none;scrollbar-width:none}
+  .dwtabs::-webkit-scrollbar{display:none}
+  .dwtab{
+    font-family:var(--sans);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    padding:8px 13px;border:1px solid var(--line);border-radius:3px;color:var(--dim);white-space:nowrap;flex:none;
+  }
+  .dwtab.on{background:var(--ember2);border-color:var(--ember2);color:#fff;font-weight:600}
+  .dwbody{flex:1;overflow-y:auto;padding:22px 20px calc(40px + env(safe-area-inset-bottom));max-width:800px;margin:0 auto;width:100%}
+
+  /* ============ DIAGRAM ============ */
+  .diagram{border:1px solid var(--line);border-radius:4px;background:var(--panel);padding:14px 10px 8px;margin:0 0 16px}
+  .diagram svg{width:100%;height:auto;display:block}
+  .diagram figcaption{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);text-align:center;margin-top:10px}
+  .flame{animation:flick 3.4s ease-in-out infinite}
+  @keyframes flick{0%,100%{opacity:.9}35%{opacity:.62}55%{opacity:1}75%{opacity:.75}}
+
+  /* ============ MISC ============ */
+  .pill{display:inline-block;font-family:var(--sans);font-size:10px;letter-spacing:.13em;text-transform:uppercase;border:1px solid var(--line);border-radius:2px;padding:4px 9px;color:var(--dim);margin:0 6px 6px 0}
+  .pill.hot{border-color:var(--ember2);color:var(--ember)}
+  .pill.good{border-color:rgba(127,174,122,.5);color:var(--ok)}
+  .banner{border-left:3px solid var(--ember);background:rgba(224,129,60,.08);padding:14px 16px;border-radius:0 3px 3px 0;margin:0 0 16px;font-size:.95rem;color:var(--dim)}
+  .banner b{color:var(--ink)}
+  .banner.danger{border-color:var(--bad);background:rgba(212,99,90,.1)}
+  .banner.calm{border-color:var(--ash);background:rgba(154,168,176,.07)}
+  .copied{color:var(--ok);font-family:var(--sans);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+  .privacy{display:flex;gap:9px;align-items:flex-start;color:var(--faint);font-size:.82rem;margin:14px 0;line-height:1.5}
+  .privacy span{flex:none;color:var(--ok)}
+
+  @media (max-width:600px){
+    .drow{grid-template-columns:1fr;gap:2px}
+    .drow dt{padding-top:0}
+    main{padding-left:16px;padding-right:16px}
+    .card{padding:17px 17px}
+  }
+
+  /* ============ PRINT: full reference, everything ============ */
+  @media print{
+    body{background:#fff;color:#111;font-size:11pt}
+    body::before,.top,.bot,.ovl,.iconbtn,.btnrow,.btn{display:none!important}
+    main{padding:0;max-width:none}
+    .drawer{position:static;display:block!important}
+    .dwtabs,.dwtop{display:none!important}
+    .dwbody{overflow:visible;padding:0}
+    .printall{display:block!important}
+    .screen{display:block!important;page-break-after:always}
+    .card,.deity{border-color:#ccc;background:#fff;break-inside:avoid}
+    .say{background:#f6f2ec;color:#111;border-color:#8a4a1c}
+    h4,.eyebrow{color:#8a4a1c}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">Spell Hour<b id="brandsub">The Unbinding</b></div>
+  <div class="spacer"></div>
+  <span class="stepno" id="stepno"></span>
+  <button class="iconbtn" id="btnSound" title="Sound on/off" aria-label="Sound">♪</button>
+  <button class="iconbtn" id="btnText" title="Text size" aria-label="Text size">A</button>
+  <button class="iconbtn" id="btnRef" title="Reference — everything" aria-label="Reference">☰</button>
+  <div class="progwrap"><div class="progbar" id="progbar"></div></div>
+</header>
+
+<main><div id="stage"></div></main>
+
+<footer class="bot">
+  <div class="nav">
+    <button class="btn ghost sm" id="btnBack">← Back</button>
+    <button class="btn primary" id="btnNext" style="flex:1">Continue →</button>
+  </div>
+  <div class="timerbox" id="timerbox" style="display:none">
+    <button id="tPlay">▶</button><span class="t" id="tDisp">0:00</span><button id="tReset">↺</button>
+  </div>
+</footer>
+
+<div class="ovl" id="ovl">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="who" id="ovlWho"></div>
+    <div class="words" id="ovlWords"></div>
+    <p class="muted" id="ovlNote"></p>
+    <div class="btnrow" style="justify-content:center">
+      <button class="btn primary" id="ovlDone">Called ✓</button>
+      <button class="btn ghost" id="ovlClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="drawer" id="drawer">
+  <div class="dwtop">
+    <div class="brand">Reference<b>Everything, always available</b></div>
+    <div class="spacer" style="flex:1"></div>
+    <button class="iconbtn" onclick="window.print()" title="Print all">⎙</button>
+    <button class="iconbtn" id="dwClose">✕</button>
+  </div>
+  <div class="dwtabs" id="dwTabs"></div>
+  <div class="dwbody" id="dwBody"></div>
+</div>
+
+<script>
+/* ==========================================================================
+   SPELL HOUR — THE UNBINDING
+   A self-guiding working. Single file, no dependencies, no storage, no network.
+   To reuse next year: change EVENT.y / EVENT.m / EVENT.d below. That is all.
+   ========================================================================== */
+
+const EVENT = { y:2026, m:8, d:16, hour:20 };   // 16 August 2026, 20:00 local
+const S = {                                      // in-memory state only
+  step:0, mode:null, lat:null, lon:null, place:null, sound:true, scale:1,
+  called:{}, ladder:{}, fill:{}, farewell:'', cordMode:null, cordEnds:{},
+  checks:{}, lit:false, pushed:false, sat:false
+};
+
+/* ---------------------------------------------------------------- CONTENT */
+
+const DEITIES = [
+ {id:'ganesha', n:'Ganesha', g:'गणेश · Vighnaharta', say:'guh-NEH-shuh · vig-nuh-HAR-tuh', tag:'Hindu · first & last', order:1,
+  holds:'Thresholds, beginnings, the obstacle itself. He is <b>Vighnaharta</b>, remover of obstacles, and <b>Vighneshvara</b>, <i>lord</i> of them — he places them as readily as he clears them, and both are the same office.',
+  why:'Called first because he is always called first. Called again at the end, because the emptied space is a beginning and beginnings are his.',
+  off:'Sweets — modak if you have them, anything sweet if you do not. Red flowers. Fresh water.',
+  app:'A living devotional deity with millions of practitioners tonight. Come as a guest with something in your hands, not as a customer with a request.',
+  inv:'Lord of Beginnings, Remover and Placer of Obstacles — before anything else, you. Take from the road what should not be on it. Leave on the road what I still need to climb. Let this hour begin cleanly.'},
+
+ {id:'hekate', n:'Hekate Kleidouchos', g:'Ἑκάτη Κλειδοῦχος', say:'heh-KAH-tay · klay-DOO-khos', tag:'Greek · opens', order:2,
+  holds:'Keys, torches, the crossroads, the threshold. <b>Kleidouchos</b> was a real temple office — the key-bearer, the one trusted to unlock the sanctuary. She does not force doors. She has the key.',
+  why:'Every account we are closing has a lock on it. She opens the room the work happens in.',
+  off:'A key laid on the altar. Garlic, eggs, honey — a supper set down and left, not eaten.',
+  app:'She unlocks; she does not tidy. Whatever is behind the door comes through the door. Ask only for what you intend to look at tonight.',
+  inv:'Keeper of Keys, Lady of the three roads — you who hold the lock of every sanctuary and open none by force: open this one. Stand at the door while we work. Let nothing in that we did not name, and let nothing out that we did not release.'},
+
+ {id:'tlazolteotl', n:'Tlazoltéotl', g:'Tlaelquani', say:'tlah-sol-TEH-oh-tl · tlah-el-KWAH-nee', tag:'Nahua · takes', order:3,
+  holds:'Refuse, excess, the confessed thing. Her priests heard what a person had actually done, and she consumed it. Filth was not scolded — it was <b>eaten</b>, and it was gone.',
+  why:'She presides over the naming. This is the goddess of saying the actual thing rather than the flattering summary.',
+  off:'Raw cotton (she wears it in her headdress). Copal. The spoken thing itself, unabridged.',
+  app:'Tradition held her clearance came <b>once</b> for a given matter. Treat that seriously: say it fully tonight, or do not open it tonight. A half-confession is the expensive option.',
+  inv:'Eater of Filth, you who are not disgusted — I will not make it prettier for you. Here is the arrangement as it actually was. Here is my part in it, which I have been leaving out. Take it whole. I will not be going back for it.'},
+
+ {id:'dionysos', n:'Dionysos Lyaios', g:'Διόνυσος Λύσιος', say:'dee-oh-NEE-sos · LEE-see-os', tag:'Greek · loosens', order:4,
+  holds:'Untying. <b>Lyaios</b> and <b>Lysios</b> both mean the one who looses — from care, from anxiety, from the bond. He had a temple under that name at Thebes. He is also <b>Eleuthereus</b>, and the root is freedom.',
+  why:'A knot has two ends. The blade is one answer; the other is a god who simply undoes it. For the ties too tangled to cut cleanly, ask him first.',
+  off:'Wine poured out, not drunk. Ivy. A knotted cord set down untied.',
+  app:'He loosens more than you asked. Be specific, and be somewhere safe afterwards.',
+  inv:'Loosener, Releaser, god who unties — I have been holding this so long my hand has shaped itself around it. Loose the grip before you loose the thing. What I cannot cut, undo.'},
+
+ {id:'fudo', n:'Fudō Myōō', g:'不動明王 · Acala', say:'FOO-doh MYOH-oh', tag:'Japanese Buddhist · cuts', order:5,
+  holds:'A sword in one hand, a lasso in the other, seated in a wall of flame and refusing to move. The sword severs delusion; the rope binds what struggles and drags it back to be looked at.',
+  why:'He is the cord-cutting itself — and he is the deity of this night’s own tradition, standing in fire while everything around him burns off. The blade is not anger. It is clarity that has stopped negotiating.',
+  off:'Incense and a lit flame. Silence held longer than is comfortable.',
+  app:'A wrathful protector of the teaching, not a wish-granter. Come as a student. The wrath is directed at your delusion, not at your enemy — do not point him at a person.',
+  inv:'Immovable One, seated in flame and not flinching — your sword does not cut people, it cuts the story. Lend it. What binds me is not the thing itself but my account of it. Sever the account. Let the flame have what remains.'},
+
+ {id:'marzanna', n:'Marzanna', g:'Morana · Mora', say:'mar-ZAH-nah / MOH-rah-nah', tag:'Slavic · burns', order:6,
+  holds:'Winter, death, and the ending of a season by force. Her rite is unusually literal: a figure is built, dressed, carried out of the village, set alight and thrown in the water. The season does not lift on its own. It is <b>carried out</b>.',
+  why:'She presides over the burning. Our parchment is her effigy in miniature — made by hand, carried out, given to fire.',
+  off:'Straw, ribbon, the effigy itself. Cold water standing ready — hers, and also the fire safety.',
+  app:'She is not kept. Her whole rite is that she goes. Do not build an ongoing devotion tonight; carry her out and let her go with the rest.',
+  inv:'Marzanna, carried out and not carried back — the season is over and it has not noticed. I am not waiting for it to lift. Here is the figure of it, made in my own hand. Take it out of the village. Do not return.'},
+
+ {id:'mengpo', n:'Mèng Pó', g:'孟婆', say:'mung PWOR', tag:'Chinese · forgets', order:7,
+  holds:'The broth of forgetting, served at the Naihe Bridge — the last crossing before a soul returns to the world. Whoever drinks passes over with nothing carried across.',
+  why:'Cutting a cord does not stop the memory arriving unbidden at two in the morning. She governs the part that is not release but <b>forgetting</b>, and she is gentle about it.',
+  off:'A cup of broth, tea, or soup, poured out rather than drunk.',
+  app:'She takes what she is given, whole. Ask for the <b>sting</b>, not the memory — you want to keep what it taught you. Say which is which, out loud, before you drink anything symbolic.',
+  inv:'Old Lady at the bridge, keeper of the last cup — take the sting and leave me the lesson. Let me remember what it cost without paying it nightly. I am crossing. I am not carrying this over.'},
+
+ {id:'wepwawet', n:'Wepwawet', g:'wp-wꜣwt', say:'wep-WAH-wet', tag:'Egyptian · opens the road', order:8,
+  holds:'The road ahead. A jackal or wolf whose standard went at the <b>head</b> of every procession, before all the others — the scout who clears the route so the rest can walk it. He stands at the prow of the solar barque.',
+  why:'He is the step everyone skips. Once the space is empty, someone has to open a road out of it, or the old thing walks back in because it knows the way. He is also our boat god — this is his moment more than the fire was.',
+  off:'Incense at a doorway. A first step taken deliberately before the hour ends.',
+  app:'He opens the way; he does not walk it for you. Name a road you will actually take.',
+  inv:'Opener of the Ways, who goes first and clears the road — the ground is bare now. Do not leave it bare. Open the way I named, and go ahead of me on it, so that what left tonight finds the road closed behind it.'}
+];
+
+const LADDER = [
+ {k:'vague', t:'Say the vague version. Then cross it out.', ex:'"I want to release negativity." Good. That is the wrapper, not the thing. Bin it.', ph:'The vague version — write it, then we leave it behind…', keep:false},
+ {k:'arrangement', t:'Name the arrangement.', ex:'Who, what, and the actual shape of it. "I am the one who is called when it goes wrong, and never when it goes well."', ph:'The actual arrangement, in one sentence…', keep:true, label:'The arrangement'},
+ {k:'moment', t:'Name the recurring moment.', ex:'Not the theme — the scene. The specific hour, the specific phone call, the specific room. Fire needs something with edges.', ph:'The scene that keeps happening…', keep:true, label:'The recurring moment'},
+ {k:'payoff', t:'Name what you get out of it.', ex:'The hard rung. Being needed, being right, being owed, not having to try. Nothing survives this long without paying you something. Write it down even if nobody sees the page.', ph:'What it has been paying me…', keep:true, label:'What it paid me'},
+ {k:'sentence', t:'Name the sentence you use to keep it.', ex:'"It’s not that bad." "They’d fall apart." "After this one thing." The cord is usually tied to a sentence, not a person.', ph:'The sentence I tell myself…', keep:true, label:'The sentence that kept it'},
+ {k:'closing', t:'Write the closing line.', ex:'"This account is closed as of tonight." In your own hand, in red, at the foot of the page. This is the line read aloud at the fire.', ph:'This account is closed as of tonight…', keep:true, label:'The closing line', pre:'This account is closed as of tonight.'}
+];
+
+const BUILD = [
+ {t:'The base — it must float, and outdoors it must be wide.', d:'A cork trivet or coaster, a cedar shingle, untreated balsa, a slice of pool noodle, a square of craft foam. <b>Six inches across</b>, now that wind is in play — every inch of beam is stability, and a narrow base out in the open will lie down at the first gust. <i>If you are using a real flame, do not use foam</i>: cork, wood, or a small foil tart tin instead. Foam does not burn so much as melt and drip.'},
+ {t:'The four posts.', d:'Push a chopstick into each corner of the foam, about half an inch in from the edges; on wood or cork, a dab of hot glue or a wrap of tape at the base of each. Trim them to roughly five inches so the whole thing stays low. They should stand square — sight down from above and adjust before the glue sets.'},
+ {t:'Cut the paper — but leave it blank.', d:'A strip about four inches tall and long enough to go round all four posts with an inch to spare. <b>You write on it later, in the working, and that is deliberate.</b> Set it aside now.'},
+ {t:'Make the river, and pick the spot carefully.', d:'Four inches of water in your vessel, and site it for shelter first: a corner, a wall, a fence, the lee of the house. Set the tub on <b>hard ground</b> — stone, paving, gravel, bare earth — not in the middle of dry August grass. Clear a couple of feet around it of anything that would take a spark. Check the wind before you commit, not after.'},
+ {t:'Have a hose, a watering can, or a second bucket to hand.', d:'You are already standing next to a tub of water, which is the good news — but have a way to douse the <i>ground</i> as well as the boat.'}
+];
+
+const CAUTIONS_HOUR = [
+ ['Vessel','One that takes heat without cracking. Not glass. Not a thrifted bowl of unknown provenance.'],
+ ['Surface','Something that will not scorch, and nothing hanging above it. Tie hair back. Loose sleeves are the most common injury in this working, every time.'],
+ ['Water standing by, window open','Both, not either.'],
+ ['Nothing swallowed, nothing consumed, nothing burned in a closed room','Offerings are poured out and left, not drunk. Resins are for burning as incense in ventilation, never ingested.'],
+ ['No accelerants','Ever. Paper and a candle are sufficient and always have been.'],
+ ['Nothing living gets cut','No hair, no skin, no blood tonight. The cord is the cord.'],
+ ['And the rule under all the others','A working that puts you in hospital has not banished anything.']
+];
+
+const CAUTIONS_BOAT = [
+ ['Wind is the whole game now','Site it in a sheltered corner, in the lee of a wall, a fence, or the house. Check the forecast before you commit to a spot. A gust does two bad things at once: it lays the boat over, and it pushes flame against paper.'],
+ ['Hard ground under the tub','Stone, paving, gravel, bare earth. Not dry August grass, not a bed of mulch, not under a low branch. Clear a couple of feet around it.'],
+ ['Never a real flame on foam','Foam melts and drips rather than burns. Foam takes an LED only. Flame goes on cork, wood, or a foil tart tin.'],
+ ['Do not leave a real flame unattended between the two moments','If you are launching at eight and coming back at dark, that gap is often two hours or more — either you stay with it the whole time, or you use an LED. Those are the only two options.'],
+ ['Longevity','A tealight gives you about four hours. If true dark is more than three hours off where you are, a candle simply will not be there when you come back. Take the LED.'],
+ ['Open top, walls clear of the light','Paper wraps the outside of the posts; nothing sags inward.'],
+ ['Nothing goes into a waterway','No river, lake, sea, canal, storm drain or garden pond, however tempting. A pond is a habitat. A swimming pool is acceptable if you fish every scrap back out and keep paper away from the skimmer.'],
+ ['These are not sky lanterns and must never be released into the air','Different object, different rite, illegal across much of the world, and a genuine wildfire risk. Ours float, and ours come back out.'],
+ ['Empty the tub the same night','Standing water left out in August is a mosquito nursery by the weekend.'],
+ ['Mind who else is out there','Pets, children, wildlife, and neighbours who do not know what you are doing and can see a flame in your garden at ten at night. A word over the fence costs nothing.']
+];
+
+const CRIB = [
+ ['Someone names a living person','Redirect to the pull, not the person: we cut what runs between, not the one at the other end. Hexing is not what tonight is. Say it once, kindly, and move on.'],
+ ['Someone breaks open at the naming step','Expected — rung four does that. Do not rush them and do not make them perform recovery. Let the circle hold the silence; it is good at it. If someone is in real distress rather than catharsis, step them out of circle with one person and let the working continue without them.'],
+ ['Someone cannot burn','Rental, roommates, no ventilation, attending from bed. Give them the alternates up front so they are not improvising in the moment: <b>dissolve</b> the parchment in water and pour it out at a drain or a root; <b>bury</b> it; or <b>shred</b> it and part with the pieces in two directions. Say clearly that these are equivalent, not lesser. Marzanna is drowned as often as she is burned.'],
+ ['Someone is upset that it is still daylight at eight','Say the line and mean it: a lantern you cannot see is still lit. Then point them at the second sitting, which is theirs and is arguably the better half.']
+];
+
+const ZONES = [
+ ['Pacific/Kiritimati','Line Islands, Kiribati'], ['Pacific/Chatham','Chatham Islands'],
+ ['Pacific/Auckland','Auckland'], ['Australia/Sydney','Sydney'], ['Australia/Brisbane','Brisbane'],
+ ['Asia/Tokyo','Tokyo & Kyoto'], ['Asia/Seoul','Seoul'], ['Asia/Shanghai','Shanghai'],
+ ['Asia/Singapore','Singapore'], ['Asia/Bangkok','Bangkok'], ['Asia/Dhaka','Dhaka'],
+ ['Asia/Kathmandu','Kathmandu'], ['Asia/Kolkata','Delhi & Mumbai'], ['Asia/Karachi','Karachi'],
+ ['Asia/Dubai','Dubai'], ['Europe/Moscow','Moscow'], ['Africa/Nairobi','Nairobi'],
+ ['Europe/Athens','Athens'], ['Africa/Johannesburg','Johannesburg'], ['Europe/Berlin','Berlin & Paris'],
+ ['Europe/London','London & Dublin'], ['Atlantic/Reykjavik','Reykjavík'],
+ ['Atlantic/Cape_Verde','Cabo Verde'], ['America/Sao_Paulo','São Paulo'],
+ ['America/St_Johns','Newfoundland'], ['America/Halifax','Halifax'], ['America/New_York','New York & Toronto'],
+ ['America/Chicago','Chicago & Mexico City'], ['America/Denver','Denver'], ['America/Phoenix','Phoenix'],
+ ['America/Los_Angeles','Los Angeles & Vancouver'], ['America/Anchorage','Anchorage'],
+ ['Pacific/Marquesas','Marquesas'], ['Pacific/Honolulu','Honolulu'], ['Pacific/Pago_Pago','American Samoa']
+];
+
+const CITIES = [
+ ['Auckland',-36.85,174.76],['Sydney',-33.87,151.21],['Melbourne',-37.81,144.96],['Brisbane',-27.47,153.03],
+ ['Perth',-31.95,115.86],['Tokyo',35.68,139.69],['Osaka',34.69,135.50],['Seoul',37.57,126.98],
+ ['Beijing',39.90,116.41],['Shanghai',31.23,121.47],['Hong Kong',22.32,114.17],['Singapore',1.35,103.82],
+ ['Bangkok',13.76,100.50],['Jakarta',-6.21,106.85],['Manila',14.60,120.98],['Dhaka',23.81,90.41],
+ ['Kathmandu',27.72,85.32],['Delhi',28.61,77.21],['Mumbai',19.08,72.88],['Bengaluru',12.97,77.59],
+ ['Karachi',24.86,67.01],['Dubai',25.20,55.27],['Tehran',35.69,51.39],['Istanbul',41.01,28.98],
+ ['Moscow',55.76,37.62],['Nairobi',-1.29,36.82],['Cairo',30.04,31.24],['Johannesburg',-26.20,28.05],
+ ['Lagos',6.52,3.38],['Athens',37.98,23.73],['Rome',41.90,12.50],['Berlin',52.52,13.40],
+ ['Warsaw',52.23,21.01],['Stockholm',59.33,18.07],['Oslo',59.91,10.75],['Copenhagen',55.68,12.57],
+ ['Amsterdam',52.37,4.90],['Paris',48.86,2.35],['Madrid',40.42,-3.70],['Lisbon',38.72,-9.14],
+ ['London',51.51,-0.13],['Manchester',53.48,-2.24],['Edinburgh',55.95,-3.19],['Glasgow',55.86,-4.25],
+ ['Dublin',53.35,-6.26],['Reykjavík',64.15,-21.94],['São Paulo',-23.55,-46.63],['Buenos Aires',-34.60,-58.38],
+ ['Bogotá',4.71,-74.07],['Lima',-12.05,-77.04],['Mexico City',19.43,-99.13],['St John’s',47.56,-52.71],
+ ['Halifax',44.65,-63.58],['Montreal',45.50,-73.57],['Toronto',43.65,-79.38],['New York',40.71,-74.01],
+ ['Washington DC',38.91,-77.04],['Atlanta',33.75,-84.39],['Miami',25.76,-80.19],['Chicago',41.88,-87.63],
+ ['Minneapolis',44.98,-93.27],['Dallas',32.78,-96.80],['Denver',39.74,-104.99],['Salt Lake City',40.76,-111.89],
+ ['Albuquerque',35.08,-106.65],['Phoenix',33.45,-112.07],['Las Vegas',36.17,-115.14],['Los Angeles',34.05,-118.24],
+ ['San Diego',32.72,-117.16],['San Francisco',37.77,-122.42],['Portland',45.52,-122.68],['Seattle',47.61,-122.33],
+ ['Vancouver',49.28,-123.12],['Anchorage',61.22,-149.90],['Honolulu',21.31,-157.86],['Pago Pago',-14.28,-170.70]
+];
+</script>
+<script>
+/* ============================================================ ASTRONOMY */
+const RAD=Math.PI/180, DEG=180/Math.PI;
+function dayOfYear(y,m,d){ return Math.floor((Date.UTC(y,m-1,d)-Date.UTC(y,0,0))/864e5); }
+
+/* Almanac-for-Computers sunrise/sunset. Returns UTC hours, or null if no event. */
+function sunEventUT(y,m,d,lat,lon,zenith,rising){
+  const N=dayOfYear(y,m,d), lngHour=lon/15;
+  const t = rising ? N+((6-lngHour)/24) : N+((18-lngHour)/24);
+  const M = 0.9856*t - 3.289;
+  let L = M + 1.916*Math.sin(M*RAD) + 0.020*Math.sin(2*M*RAD) + 282.634; L=((L%360)+360)%360;
+  let RA = DEG*Math.atan(0.91764*Math.tan(L*RAD)); RA=((RA%360)+360)%360;
+  RA += (Math.floor(L/90)*90 - Math.floor(RA/90)*90); RA/=15;
+  const sinDec=0.39782*Math.sin(L*RAD), cosDec=Math.cos(Math.asin(sinDec));
+  const cosH=(Math.cos(zenith*RAD)-sinDec*Math.sin(lat*RAD))/(cosDec*Math.cos(lat*RAD));
+  if(cosH>1||cosH<-1) return null;
+  let H = rising ? 360-DEG*Math.acos(cosH) : DEG*Math.acos(cosH); H/=15;
+  let UT = H + RA - 0.06571*t - 6.622 - lngHour;
+  return ((UT%24)+24)%24;
+}
+/* The evening event (sunset / dusk) that follows local solar noon on the event
+   date. Anchoring to solar noon rather than to a calendar date is what makes
+   Anchorage work — its true dark falls after local midnight. */
+function eveningEventDate(lat,lon,zenith){
+  if(lat===null||lat===undefined) return null;
+  const noonUTC = Date.UTC(EVENT.y,EVENT.m-1,EVENT.d,12,0,0) - (lon/15)*3600e3;
+  let best=null;
+  for(const dd of [EVENT.d-1,EVENT.d,EVENT.d+1]){
+    const ut=sunEventUT(EVENT.y,EVENT.m,dd,lat,lon,zenith,false);
+    if(ut===null) continue;
+    const t=Date.UTC(EVENT.y,EVENT.m-1,dd,0,0,0)+ut*3600e3;
+    if(t>noonUTC && t<noonUTC+16*3600e3 && (best===null||t<best)) best=t;
+  }
+  return best===null?null:new Date(best);
+}
+const SUNSET_Z=90.8333, DARK_Z=102;   // 102° = nautical twilight = usable dark
+
+/* ============================================================ TIME */
+function tzOffsetMin(tz,date){
+  const p=new Intl.DateTimeFormat('en-US',{timeZone:tz,hour12:false,year:'numeric',month:'2-digit',
+    day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(date)
+    .reduce((a,x)=>(a[x.type]=x.value,a),{});
+  const asUTC=Date.UTC(+p.year,+p.month-1,+p.day,(+p.hour)%24,+p.minute,+p.second);
+  return Math.round((asUTC-date.getTime())/60000);
+}
+/* the UTC instant at which it is EVENT.hour:00 local in tz on the event date */
+function launchInstant(tz){
+  let guess=new Date(Date.UTC(EVENT.y,EVENT.m-1,EVENT.d,EVENT.hour,0,0));
+  for(let i=0;i<3;i++){
+    const off=tzOffsetMin(tz,guess);
+    guess=new Date(Date.UTC(EVENT.y,EVENT.m-1,EVENT.d,EVENT.hour,0,0)-off*60000);
+  }
+  return guess;
+}
+function myLaunch(){ return new Date(EVENT.y,EVENT.m-1,EVENT.d,EVENT.hour,0,0,0); }
+function fmtLocal(dt,tz){
+  if(!dt) return '—';
+  return new Intl.DateTimeFormat(undefined,{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:tz}).format(dt);
+}
+function fmtUTC(dt){
+  if(!dt) return '—';
+  return new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',
+    hour12:false,timeZone:'UTC'}).format(dt).replace(',','')+' UTC';
+}
+function dur(ms){
+  const neg=ms<0; ms=Math.abs(ms);
+  const s=Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor(s%3600/60), ss=s%60;
+  const str = h>0 ? `${h}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`
+                  : `${m}:${String(ss).padStart(2,'0')}`;
+  return (neg?'-':'')+str;
+}
+function durWords(ms){
+  const s=Math.floor(Math.abs(ms)/1000), h=Math.floor(s/3600), m=Math.floor(s%3600/60);
+  if(h>=1) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
+/* ============================================================ SOUND */
+let AC=null;
+function bell(freq=528,len=1.4){
+  if(!S.sound) return;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.type='sine'; o.frequency.value=freq; o.connect(g); g.connect(AC.destination);
+    g.gain.setValueAtTime(0,AC.currentTime);
+    g.gain.linearRampToValueAtTime(.16,AC.currentTime+.02);
+    g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+len);
+    o.start(); o.stop(AC.currentTime+len);
+    const o2=AC.createOscillator(), g2=AC.createGain();
+    o2.type='sine'; o2.frequency.value=freq*1.5; o2.connect(g2); g2.connect(AC.destination);
+    g2.gain.setValueAtTime(0,AC.currentTime);
+    g2.gain.linearRampToValueAtTime(.05,AC.currentTime+.03);
+    g2.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+len*.8);
+    o2.start(); o2.stop(AC.currentTime+len);
+  }catch(e){}
+}
+
+/* ============================================================ HELPERS */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function copy(txt,el){
+  navigator.clipboard?.writeText(txt).then(()=>{
+    if(el){const o=el.textContent; el.textContent='Copied ✓'; el.classList.add('copied');
+      setTimeout(()=>{el.textContent=o; el.classList.remove('copied');},1800);}
+  }).catch(()=>{});
+}
+function myTZ(){ try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}catch(e){return 'UTC';} }
+function sunsetToday(){ return S.lat===null?null:eveningEventDate(S.lat,S.lon,SUNSET_Z); }
+function darkToday(){ return S.lat===null?null:eveningEventDate(S.lat,S.lon,DARK_Z); }
+function gapToDark(){
+  const dk=darkToday(); if(!dk) return null;
+  return dk-myLaunch();
+}
+function needsLED(){
+  const g=gapToDark();
+  if(S.lat===null) return null;
+  if(g===null) return true;          // no true dark → long wait
+  return g > 3*3600e3;
+}
+
+/* ============================================================ SVG */
+const LANTERN_SVG=`
+<svg viewBox="0 0 700 440" role="img" aria-label="Floating lantern: base, four chopstick posts, paper wall bound with twine, light inside, floating in a tub of water">
+ <defs><radialGradient id="glow" cx="50%" cy="50%" r="50%">
+  <stop offset="0%" stop-color="#ffd9a0" stop-opacity=".95"/>
+  <stop offset="55%" stop-color="#e0813c" stop-opacity=".45"/>
+  <stop offset="100%" stop-color="#e0813c" stop-opacity="0"/></radialGradient></defs>
+ <g font-family="ui-sans-serif,-apple-system,Segoe UI,Roboto,sans-serif" font-size="11.5" fill="#a89484">
+  <text x="115" y="36" text-anchor="middle" fill="#7a6759" font-size="10" letter-spacing="2.2">TOP VIEW</text>
+  <rect x="60" y="48" width="110" height="110" rx="3" fill="#1c1512" stroke="#3a2a22"/>
+  <circle cx="115" cy="103" r="21" fill="none" stroke="#c9663a" stroke-dasharray="3 3"/>
+  <circle cx="72" cy="60" r="5" fill="#d9b06a"/><circle cx="158" cy="60" r="5" fill="#d9b06a"/>
+  <circle cx="72" cy="146" r="5" fill="#d9b06a"/><circle cx="158" cy="146" r="5" fill="#d9b06a"/>
+  <text x="115" y="176" text-anchor="middle" font-size="10.5" fill="#7a6759">posts at the corners · light in the middle</text>
+  <path d="M210,250 L224,398 L476,398 L490,250" fill="none" stroke="#3a2a22" stroke-width="2"/>
+  <path d="M213.7,289 L224,398 L476,398 L486.3,289 Z" fill="#9aa8b0" fill-opacity=".10"/>
+  <line x1="213.7" y1="289" x2="486.3" y2="289" stroke="#9aa8b0" stroke-opacity=".55" stroke-width="1.5"/>
+  <circle cx="350" cy="254" r="52" fill="url(#glow)" class="flame"/>
+  <rect x="315" y="150" width="4" height="128" fill="#6b5545"/>
+  <rect x="381" y="150" width="4" height="128" fill="#6b5545"/>
+  <rect x="302" y="158" width="96" height="116" rx="2" fill="#f0e2cd" fill-opacity=".13" stroke="#d9b06a" stroke-opacity=".8"/>
+  <rect x="336" y="260" width="28" height="16" rx="2" fill="#2a211c" stroke="#9aa8b0" stroke-opacity=".7"/>
+  <circle cx="350" cy="258" r="4" fill="#ffd9a0" class="flame"/>
+  <rect x="304" y="148" width="5" height="130" rx="1" fill="#d9b06a"/>
+  <rect x="391" y="148" width="5" height="130" rx="1" fill="#d9b06a"/>
+  <line x1="299" y1="167" x2="401" y2="167" stroke="#c9663a" stroke-width="2"/>
+  <line x1="299" y1="266" x2="401" y2="266" stroke="#c9663a" stroke-width="2"/>
+  <rect x="300" y="276" width="100" height="18" rx="2" fill="#2f2620" stroke="#d9b06a" stroke-opacity=".8"/>
+  <line x1="186" y1="205" x2="300" y2="205" stroke="#3a2a22"/><circle cx="300" cy="205" r="2.5" fill="#c9663a"/>
+  <text x="178" y="202" text-anchor="end" fill="#ece3da">Paper wall</text>
+  <text x="178" y="217" text-anchor="end" font-size="10.5">write on this first</text>
+  <line x1="186" y1="248" x2="306" y2="248" stroke="#3a2a22"/><circle cx="306" cy="248" r="2.5" fill="#c9663a"/>
+  <text x="178" y="245" text-anchor="end" fill="#ece3da">4 chopsticks</text>
+  <text x="178" y="260" text-anchor="end" font-size="10.5">trimmed to ~5 in / 13 cm</text>
+  <line x1="186" y1="286" x2="300" y2="286" stroke="#3a2a22"/><circle cx="300" cy="286" r="2.5" fill="#c9663a"/>
+  <text x="178" y="283" text-anchor="end" fill="#ece3da">Base — cork, wood or foam</text>
+  <text x="178" y="298" text-anchor="end" font-size="10.5">6 in / 15 cm square</text>
+  <line x1="401" y1="167" x2="514" y2="167" stroke="#3a2a22"/><circle cx="401" cy="167" r="2.5" fill="#c9663a"/>
+  <text x="522" y="164" fill="#ece3da">Cotton twine</text>
+  <text x="522" y="179" font-size="10.5">top and bottom · no plastic</text>
+  <line x1="364" y1="268" x2="514" y2="268" stroke="#3a2a22"/><circle cx="364" cy="268" r="2.5" fill="#c9663a"/>
+  <text x="522" y="265" fill="#ece3da">Tealight or LED</text>
+  <text x="522" y="280" font-size="10.5">see the flame check</text>
+  <line x1="470" y1="289" x2="514" y2="300" stroke="#3a2a22"/><circle cx="470" cy="289" r="2.5" fill="#c9663a"/>
+  <text x="522" y="304" fill="#ece3da">4 in / 10 cm of water</text>
+  <line x1="480" y1="350" x2="514" y2="350" stroke="#3a2a22"/><circle cx="480" cy="350" r="2.5" fill="#c9663a"/>
+  <text x="522" y="347" fill="#ece3da">Bucket · tote · trough</text>
+  <text x="522" y="362" font-size="10.5">sheltered · on hard ground</text>
+ </g></svg>`;
+</script>
+<script>
+/* ============================================================ STEPS */
+
+function statBlock(){
+  const tz=myTZ(), L=myLaunch(), now=new Date();
+  const ss=sunsetToday(), dk=darkToday(), gap=gapToDark();
+  const diff=L-now;
+  let launchLine = diff>0 ? 'in '+durWords(diff) : durWords(diff)+' ago';
+  let darkTxt = S.lat===null ? 'set your place' : (dk? fmtLocal(dk,tz) : 'no true dark tonight');
+  let gapTxt = S.lat===null ? '—' : (gap===null? 'take the darkest hour you get' : durWords(gap)+' after launch');
+  return `<div class="statgrid">
+    <div class="stat big"><div class="k">Your launch</div><div class="v">${String(EVENT.hour).padStart(2,'0')}:00</div><div class="s">${esc(launchLine)}</div></div>
+    <div class="stat"><div class="k">That is</div><div class="v" style="font-size:1.05rem">${fmtUTC(L)}</div><div class="s">${esc(tz)}</div></div>
+    <div class="stat"><div class="k">Sunset</div><div class="v">${S.lat===null?'—':(ss?fmtLocal(ss,tz):'—')}</div><div class="s">${S.place?esc(S.place):'location not set'}</div></div>
+    <div class="stat"><div class="k">True dark — second sitting</div><div class="v">${esc(darkTxt)}</div><div class="s">${esc(gapTxt)}</div></div>
+  </div>`;
+}
+
+function relayRows(){
+  const now=Date.now(), me=myLaunch().getTime(), tz=myTZ();
+  const rows=ZONES.map(([z,label])=>({z,label,t:launchInstant(z).getTime()}));
+  rows.push({z:'__me',label:'Where you are — '+tz.split('/').pop().replace(/_/g,' '),t:me,me:true});
+  rows.sort((a,b)=>a.t-b.t);
+  return rows.map(r=>{
+    const d=now-r.t;
+    const cls=(d>=0&&d<36e5)?'now':(d>=0?'lit':'');
+    const rel = d>=0 ? (d<36e5?'lighting now':'lit '+durWords(d)+' ago') : 'in '+durWords(-d);
+    return `<div class="z ${cls} ${r.me?'me':''}"><div class="zdot"></div>
+      <div class="zn">${esc(r.label)}</div>
+      <div class="zt">${fmtUTC(new Date(r.t)).replace(' UTC','')} · ${esc(rel)}</div></div>`;
+  }).join('');
+}
+function relayProgress(){
+  const rows=ZONES.map(([z])=>launchInstant(z).getTime());
+  const first=Math.min(...rows), last=Math.max(...rows), now=Date.now();
+  const pct=Math.max(0,Math.min(100,(now-first)/(last-first)*100));
+  const mePct=Math.max(0,Math.min(100,(myLaunch().getTime()-first)/(last-first)*100));
+  return {pct,mePct,first:new Date(first),last:new Date(last),
+    hours:Math.round((last-first)/36e5)};
+}
+
+const STEPS=[
+
+/* ---------------------------------------------------------- 0 · SETUP */
+{id:'setup', name:'Begin', eyebrow:'Spell Hour · The Farewell Fires', mins:0,
+ render(){
+  const rp=relayProgress();
+  return `
+  <h1>The Unbinding, the Cut, <em>and What Comes After</em></h1>
+  <p class="lede">Release work start to finish: name it precisely, commit it to parchment in your own hand, part with it by fire — then name aloud what enters the emptied space before we close. And a boat, on water, outdoors, lit at eight o'clock wherever you are.</p>
+
+  <div class="card">
+    <h4>Why tonight</h4>
+    <p>Tonight is the night of the <b>okuribi</b> — the send-off fires. In Kyoto the five mountain fires of <b>Gozan no Okuribi</b> are lit on the sixteenth of August at eight in the evening: the characters for <i>great</i>, <i>wondrous</i>, <i>dharma</i>, a boat, and a shrine gate, burning on the hillsides to close Obon and light the returning road for the dead who have been visiting since the thirteenth.</p>
+    <p>The logic is exactly ours: <b>the fire is not for destruction. It is for the journey out.</b> Obon does not end by pretending the dead were never there. It ends by feeding them, sitting with them, and then lighting a road and saying <i>go well</i>. Everything we burn tonight gets the same treatment — and then, unlike almost everyone, we stay in the room long enough to fill the gap.</p>
+    <p style="margin-bottom:0">Note which of the five characters is not a character at all. <b>Funagata</b> — the boat. Among the words for great, wondrous and dharma, one hillside burns the shape of a vessel, because some journeys are made by water. So we build one too.</p>
+  </div>
+
+  <hr class="rule">
+  <p class="eyebrow">First — tell it where you are</p>
+  <p class="muted">This is worked out on your device and goes nowhere. It sets your launch time, your true dark, and your place in the relay.</p>
+
+  <div class="field">
+    <label>Are you leading, or working alone?</label>
+    <div class="toggle">
+      <button data-act="mode" data-v="host" class="${S.mode==='host'?'on':''}">I am leading a circle</button>
+      <button data-act="mode" data-v="solo" class="${S.mode==='solo'?'on':''}">I am working alone</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Where are you? — for sunset and true dark</label>
+    <div class="btnrow" style="margin:0 0 10px">
+      <button class="btn sm" data-act="geo">Use my device location</button>
+      <button class="btn sm ghost" data-act="skipgeo">Skip — I only need my launch time</button>
+    </div>
+    <select class="inp" data-act="city">
+      <option value="">…or pick the nearest city</option>
+      ${CITIES.map((c,i)=>`<option value="${i}" ${S.place===c[0]?'selected':''}>${esc(c[0])}</option>`).join('')}
+    </select>
+    <p class="tiny" id="geoMsg" style="margin-top:8px"></p>
+  </div>
+
+  <div id="liveStats">${statBlock()}</div>
+
+  <div class="banner"><b>Eight o'clock is not dark for everyone.</b> Across Britain, Ireland, Scandinavia, Germany, Canada and Alaska it is broad daylight at eight on the sixteenth; the mainland US is in twilight. That is why this working has <b>two moments</b> — the launch at eight, and the sitting at your own dark. A lantern you cannot see is still lit.</div>
+
+  <div class="card deep">
+    <h4>The relay, right now</h4>
+    <div class="relaybar"><div class="fill" id="rbFill" style="width:${rp.pct}%"></div><div class="me" style="left:${rp.mePct}%"></div></div>
+    <div class="relayends"><span>first light · Line Islands</span><span>${rp.hours}h</span><span>last light · Samoa</span></div>
+    <p class="muted" style="margin:0" id="rbWord"></p>
+  </div>
+
+  <div class="privacy"><span>●</span><div><b style="color:var(--dim)">Nothing you type here is stored or sent.</b> No account, no cookie, no server. It lives in this browser tab and dies when you close it — which is the correct arrangement for a working in which people write down the worst true thing they know about themselves.</div></div>
+  `;
+ },
+ mount(){ tickers.stats=()=>{ const e=$('#liveStats'); if(e) e.innerHTML=statBlock();
+    const rp=relayProgress(); const f=$('#rbFill'); if(f) f.style.width=rp.pct+'%';
+    const w=$('#rbWord'); if(w){ const now=Date.now();
+      if(now<rp.first) w.textContent='The relay has not begun. First light in '+durWords(rp.first-now)+'.';
+      else if(now>rp.last) w.textContent='The relay is complete. It ran '+rp.hours+' hours without going out.';
+      else w.textContent='The relay is running. '+durWords(now-rp.first)+' in, '+durWords(rp.last-now)+' still to come.'; }
+  }; }
+},
+
+/* ---------------------------------------------------------- 1 · RELAY */
+{id:'relay', name:'The relay', eyebrow:'Where the light is', mins:0,
+ render(){
+  return `<h2>The light is moving west</h2>
+  <p class="lede">Everyone lights at eight o'clock local — which is when the Kyoto fires are lit. Eight o'clock arrives one time zone at a time, so we are not lighting together. We are lighting <b>in sequence</b>, rolling westward round the earth.</p>
+  <p>The first lantern goes onto the water in the Line Islands. The last goes on in American Samoa, twenty-five hours later. <b>Between those two moments, somebody among us has a light on the water at every single minute.</b> It does not go out. It only moves.</p>
+  <div class="card deep">
+    <div class="relaybar"><div class="fill" id="rbFill2"></div><div class="me" id="rbMe2"></div></div>
+    <div class="relayends"><span id="rbA"></span><span id="rbB"></span></div>
+    <p class="muted" style="margin:0" id="rbWord2"></p>
+  </div>
+  <p class="eyebrow" style="margin-top:26px">Every station, live</p>
+  <div class="zlist" id="zlist"></div>
+  <p class="tiny" style="margin-top:16px">In a few places the wave steps by three-quarters of an hour rather than a whole one — Chatham Islands, Nepal, the Marquesas — which is a pleasing thing to know and no use whatsoever.</p>`;
+ },
+ mount(){ tickers.relay=()=>{
+    const z=$('#zlist'); if(z) z.innerHTML=relayRows();
+    const rp=relayProgress(), now=Date.now();
+    const f=$('#rbFill2'); if(f) f.style.width=rp.pct+'%';
+    const m=$('#rbMe2'); if(m) m.style.left=rp.mePct+'%';
+    const a=$('#rbA'), b=$('#rbB');
+    if(a) a.textContent=fmtUTC(rp.first); if(b) b.textContent=fmtUTC(rp.last);
+    const w=$('#rbWord2'); if(w){
+      if(now<rp.first) w.textContent='Not yet begun — first light in '+durWords(rp.first-now)+'.';
+      else if(now>rp.last) w.textContent='Complete. It ran '+rp.hours+' hours without going out.';
+      else w.textContent='Running now. '+durWords(now-rp.first)+' elapsed, '+durWords(rp.last-now)+' to come.';}
+ }; }
+},
+
+/* ---------------------------------------------------------- 2 · READY */
+{id:'ready', name:'Materials & safety', eyebrow:'Before anything is lit', mins:5,
+ render(){
+  const hour=[
+   ['Cauldron or chalice','Heatproof, dry, and larger than you think you need.'],
+   ['Candles and a lighter','Something you do not have to hold while it burns down.'],
+   ['Cord','Natural fibre. Long enough to be measured between two points and still cut safely.'],
+   ['Parchment','One sheet per account. Small. Small burns clean.'],
+   ['Red ink','Dragon’s blood, dove’s blood, or the like.'],
+   ['Blade or scissors','Sharp. A dull blade turns cutting into sawing and ruins the moment.'],
+   ['Offerings','A key, sweets, cotton, wine, incense, straw, broth, water.'],
+   ['Water, within arm’s reach','A full vessel, before anything is lit.']];
+  const boat=[
+   ['A vessel for the water','Bucket, tote, trough, cooler, baby bath, paddling pool, wheelbarrow, galvanised tub.'],
+   ['A floating base','Cork, cedar shingle, balsa, pool noodle, craft foam. Six inches across, for wind.'],
+   ['Four chopsticks','Skewers, lolly sticks or twigs all work. Trimmed to about five inches.'],
+   ['A strip of paper — blank','Four inches tall, long enough to wrap all four posts. We write on it later.'],
+   ['Cotton twine','Natural fibre, nothing that melts.'],
+   ['A tealight or an LED','The flame check on the next screen will tell you which.'],
+   ['A sheltered outdoor spot on hard ground','And a hose or second bucket within reach.']];
+  const gate=[
+   ['My burn vessel takes heat without cracking','Not glass. Not a thrifted bowl of unknown provenance.'],
+   ['It stands on something that will not scorch','And nothing hanging above it.'],
+   ['Hair tied back, sleeves out of the way','Loose sleeves are the most common injury in this working, every time.'],
+   ['Water is within arm’s reach and a window is open','Both, not either.'],
+   ['I have checked my local fire restrictions','It is mid-August. Much of the American West, the Mediterranean and southern Australia is under burn bans right now, and a burn ban has no folk-practice exemption. If in doubt: LED, and no open flame.'],
+   ['Nothing swallowed, nothing consumed, no accelerants','Offerings are poured out and left. Resins are burned as incense with ventilation, never ingested.']];
+  const list=(arr,key)=>arr.map((x,i)=>{
+    const id=key+i, on=S.checks[id];
+    return `<div class="chk ${on?'done':''}" data-act="chk" data-id="${id}"><div class="box">✓</div>
+      <div class="txt"><b>${esc(x[0])}</b>${x[1]}</div></div>`;}).join('');
+  const n=k=>Object.keys(S.checks).filter(x=>x.startsWith(k)&&S.checks[x]).length;
+  return `<h2>Lay it out before you begin</h2>
+  <p class="lede">Tick as you go. Nothing here is precious — it is the difference between a working and an incident.</p>
+  <p class="eyebrow" style="margin-top:24px">For the hour</p>
+  <p class="chkmeter">${n('h')} / ${hour.length}</p>${list(hour,'h')}
+  <div class="banner calm"><b>For newer practitioners:</b> the traditional inks carry those names from the <b>resins</b> they are made from — dragon's blood is a red plant resin from <i>Dracaena</i> and <i>Daemonorops</i> palms — and not from any creature. Nothing living is harmed to prepare them, and anyone selling you otherwise is selling you something else.</div>
+  <p class="eyebrow" style="margin-top:28px">For the boat</p>
+  <p class="chkmeter">${n('b')} / ${boat.length}</p>${list(boat,'b')}
+  <p class="eyebrow" style="margin-top:28px">The safety gate</p>
+  <p class="muted">All six, please. The working does not move on until they are ticked.</p>
+  <p class="chkmeter">${n('g')} / ${gate.length}</p>${list(gate,'g')}
+  <div class="banner ${n('g')===gate.length?'':'danger'}">${n('g')===gate.length
+    ? '<b>Good. You are clear to work.</b> A working that puts you in hospital has not banished anything.'
+    : '<b>Not yet.</b> Six ticks above before we go on. A working that puts you in hospital has not banished anything.'}</div>`;
+ },
+ canNext(){ return Object.keys(S.checks).filter(x=>x.startsWith('g')&&S.checks[x]).length>=6; },
+ blockMsg:'Tick all six of the safety gate first.'
+},
+
+/* ---------------------------------------------------------- 3 · BOAT BUILD */
+{id:'build', name:'Build the boat', eyebrow:'Funagata — the boat shape', mins:15,
+ render(){
+  const led=needsLED(), gap=gapToDark();
+  let verdict='';
+  if(S.lat===null){
+    verdict=`<div class="banner"><b>Set your location on the first screen</b> and this will tell you whether a real flame will still be burning when you come back at dark.</div>`;
+  } else if(led){
+    verdict=`<div class="banner danger"><b>Take the LED.</b> ${gap===null?'You get no true dark tonight, so the wait is long and open-ended.':'True dark is '+durWords(gap)+' after you launch, and a tealight gives you about four hours.'} A candle will not be there when you come back — and a real flame must never be left unattended across that gap.</div>`;
+  } else {
+    verdict=`<div class="banner"><b>A real tealight is workable for you</b> — true dark is only ${durWords(gap)} after launch. Conditions: sheltered from wind, staying with it, no burn ban where you live, and <b>not on foam</b>. If any of those fails, take the LED. It is not the lesser version.</div>`;
+  }
+  const steps=BUILD.map((b,i)=>{
+    const id='B'+i, on=S.checks[id];
+    return `<div class="chk ${on?'done':''}" data-act="chk" data-id="${id}" style="align-items:flex-start">
+      <div class="box">✓</div><div class="txt"><b>${i+1}. ${esc(b.t)}</b>${b.d}</div></div>`;}).join('');
+  return `<h2>Build the frame — and stop there</h2>
+  <p class="lede">In Japan the lanterns of <b>tōrō nagashi</b> go onto a river and the current does the rest. Most of us have no river, and those who do should not be putting anything into one. So we make the river.</p>
+  <p><b>This goes outdoors, and that is the right way round.</b> The Kyoto fires burn on open hillsides; tōrō nagashi goes onto open rivers. Outdoors also settles the fire question in your favour — with sky above it, a real tealight becomes reasonable rather than reckless. What outdoors gives you instead is <b>wind</b>, and wind is the thing to plan around now.</p>
+  <figure class="diagram">${LANTERN_SVG}<figcaption>Funagata — after the fourth Kyoto fire</figcaption></figure>
+  <p class="eyebrow" style="margin-top:24px">The flame check — for where you are</p>
+  ${verdict}
+  <p class="eyebrow" style="margin-top:24px">Building it</p>
+  ${steps}
+  <div class="banner"><b>The paper stays blank.</b> You write on it during the working, not now. Once it is bound and lit you cannot change it, and that is also deliberate.</div>`;
+ }
+},
+
+/* ---------------------------------------------------------- 4 · OPEN */
+{id:'open', name:'The fires are lit', eyebrow:':00 — Open', mins:5,
+ render(){ return `<h2>The fires are lit today, and so is ours</h2>
+  <p class="lede">Welcome them. Say the shape of the hour in three sentences: <b>name it, part with it, replace it.</b> Then say the boat is coming, and that nobody burns anything until the safety brief.</p>
+  <div class="say host">Tonight is the night of the send-off fires. On the hillsides above Kyoto five great fires are lit at eight in the evening to close Obon and light the returning road for the dead who have been visiting since the thirteenth. Borrow the logic exactly: the fire is not for destruction. It is for the journey out.</div>
+  <div class="say host">Obon does not end by pretending the dead were never there. It ends by feeding them, sitting with them, and then lighting a road and saying — go well. Everything we burn tonight gets the same treatment. We are not incinerating what we hated. We are lighting the way out for what we are done with. And then, unlike almost everyone, we are going to stay in the room long enough to fill the gap.</div>
+  <p class="muted">${S.mode==='solo'?'Working alone: read these aloud anyway. The mouth commits what the mind will renegotiate.':'Leading: give it the full five minutes. People arrive scattered and need a moment to land.'}</p>`;}
+},
+
+/* ---------------------------------------------------------- 5 · WARD */
+{id:'ward', name:'Casting & the brief', eyebrow:':05 — Ward', mins:5,
+ render(){ return `<h2>Cast, then speak plainly</h2>
+  <p class="lede">Cast as your practice runs. Then drop out of ritual voice entirely and give the brief: <b>vessel, surface, water, window.</b></p>
+  <div class="banner"><b>Have everyone physically touch their water source before you proceed.</b> Not say they have one — touch it. Do not skip this because it is unromantic.</div>
+  <p>Say the boat plan too, so nobody is improvising later: frames built, paper blank, launch at eight local, outdoors, and a second sitting at their own dark.</p>
+  <div class="say host">Water in reach. Window open. Hair back, sleeves up. Nothing swallowed, nothing burned in a closed room, no accelerants. If you are somewhere you cannot burn, you are not doing a lesser version — you will dissolve, bury, or shred, and Marzanna is drowned as often as she is burned.</div>`;}
+},
+
+/* ---------------------------------------------------------- 6 · CALL */
+{id:'call', name:'Invocation of the Eight', eyebrow:':10 — Call', mins:7,
+ render(){
+  const n=Object.keys(S.called).filter(k=>S.called[k]).length;
+  const cards=DEITIES.map((d,i)=>`
+   <div class="deity ${S.called[d.id]?'called':''}" data-d="${d.id}">
+     <button class="dhead" data-act="dopen" data-d="${d.id}">
+       <div class="dnum">${S.called[d.id]?'✓':d.order}</div>
+       <div class="dname"><div class="n">${esc(d.n)}<span class="glyph">${esc(d.g)}</span></div><div class="r">${esc(d.say)}</div></div>
+       <div class="dtag">${esc(d.tag)}</div>
+     </button>
+     <div class="dbody">
+       <dl class="drow"><dt>Holds</dt><dd>${d.holds}</dd></dl>
+       <dl class="drow"><dt>Why tonight</dt><dd>${d.why}</dd></dl>
+       <dl class="drow"><dt>Offering</dt><dd>${d.off}</dd></dl>
+       <dl class="drow"><dt>Approach</dt><dd>${d.app}</dd></dl>
+       <div class="btnrow" style="margin-bottom:0">
+         <button class="btn primary sm" data-act="invoke" data-d="${d.id}">Speak the invocation</button>
+       </div>
+     </div>
+   </div>`).join('');
+  return `<h2>Call the Eight</h2>
+  <p class="lede">Eight roads to the same door, across seven traditions — male and female, bright and dark. Ganesha opens, and Ganesha closes. Tap a name to read it; tap <i>speak the invocation</i> for the words in large type, for reading aloud in poor light.</p>
+  <div class="say all">We call not one tradition tonight but eight roads to the same door — the key-bearer and the loosener, the eater of filth and the immovable blade, the carried-out season, the last cup, and the one who walks ahead. Be welcome. Be exact with us.</div>
+  <p class="chkmeter" id="callMeter">${n} / 8 called</p>
+  <div class="dgrid">${cards}</div>
+  <div class="card flat" style="border-style:dashed">
+    <h4>A note on who is not on this list</h4>
+    <p style="margin:0">No Orisha, no Lwa, no Indigenous or otherwise initiatory figures are on tonight's roster. Not because they lack release aspects — several have them profoundly — but because those are held within lineages with living gatekeepers, and a public open working is not where that door gets opened. The eight above are all documented, publicly attested, and appropriate to name in a mixed room. If someone in the circle <i>is</i> initiated and wishes to work their own lineage privately alongside ours, that is theirs to do and not ours to stage.</p>
+  </div>`;
+ }
+},
+
+/* ---------------------------------------------------------- 7 · NAME */
+{id:'name', name:'The Naming', eyebrow:':17 — Name', mins:12,
+ render(){
+  let firstEmpty=LADDER.findIndex(r=>!(S.ladder[r.k]||'').trim());
+  if(firstEmpty<0) firstEmpty=LADDER.length;
+  const rungs=LADDER.map((r,i)=>{
+    const val=S.ladder[r.k]||(r.pre&&i===firstEmpty?'':'');
+    const state = (S.ladder[r.k]||'').trim() ? 'filled' : (i<=firstEmpty?'active':'');
+    return `<div class="rung ${state}">
+      <div class="rhead"><div class="rnum">${i+1}</div><b>${esc(r.t)}</b></div>
+      <div class="rex">${r.ex}</div>
+      <textarea class="inp" data-act="ladder" data-k="${r.k}" rows="2"
+        placeholder="${esc(r.ph)}">${esc(val)}</textarea>
+    </div>`;}).join('');
+  const done=LADDER.every(r=>(S.ladder[r.k]||'').trim());
+  return `<h2>The heart of it</h2>
+  <p class="lede">This is where the hour is won or lost. Everyone writes <b>in their own hand</b> on the parchment — no typing, no dictation, no proxies. Use the ladder below to find the words, then copy them onto the sheet.</p>
+  <div class="say host">"Negativity" is not a thing. It has never once been a thing. Write down the arrangement. Write down the habit. Write down the hold — and write down what you were getting out of it, because you were getting something, or it would have ended by itself years ago.</div>
+  <p class="eyebrow" style="margin-top:24px">The Precision Ladder</p>
+  <p class="muted">Roughly a minute per rung. Each opens as you fill the one above.</p>
+  ${rungs}
+  <div class="privacy"><span>●</span><div>Nothing here is stored or transmitted. When you close this tab it is gone. Copy it to your parchment in your own hand — that is the copy that matters.</div></div>
+  ${done?`<div class="btnrow"><button class="btn primary wide" data-act="parch">Compose my parchment ↓</button></div><div id="parchOut"></div>`:'<div class="banner">Fill all six rungs and the parchment will compose itself.</div>'}`;
+ }
+},
+
+/* ---------------------------------------------------------- 8 · CORD */
+{id:'cord', name:'The Cord', eyebrow:':29 — Cut', mins:7,
+ render(){
+  const m=S.cordMode;
+  const guide = m==='cut' ? `<div class="card"><h4>To cut — Fudō's blade</h4>
+    <p>For what is finished. Measure the cord between the two named points. Say each end aloud before any blade comes near it. Then one clean stroke — a dull blade turns cutting into sawing and ruins the moment.</p>
+    <div class="say">This end is me. This end is the thing I have named. The cord is not the relationship — the cord is the pull. I am not cutting a person. I am cutting the pull.</div>
+    <p style="margin-bottom:0" class="muted">Fudō's sword does not cut people. It cuts the story. Point it at your account of the thing, never at someone's name.</p></div>`
+   : m==='untie' ? `<div class="card"><h4>To untie — Dionysos' hands</h4>
+    <p>For what must continue in altered form: a co-parent, a colleague, a body, a family, a chronic thing. <b>Untying is not the weaker working. It is the harder one.</b> Work the knot loose slowly with both hands and do not resort to the blade halfway.</p>
+    <div class="say">Loosener, Releaser, god who unties — I have been holding this so long my hand has shaped itself around it. Loose the grip before you loose the thing. What I cannot cut, undo.</div>
+    <p style="margin-bottom:0" class="muted">You are not ending the relation. You are ending the <i>pull</i> inside it. Name that distinction out loud or the working will overreach.</p></div>`
+   : `<div class="banner">Choose above. Both are real workings; the choice is about whether the thing continues in your life in some altered form.</div>`;
+  return `<h2>Two named ends, and only two</h2>
+  <p class="lede">A cord measured between two points — you, and the account. Say what each end is <b>aloud</b> before anything sharp is involved.</p>
+  <div class="field"><label>Which working is this?</label>
+    <div class="toggle">
+      <button data-act="cord" data-v="cut" class="${m==='cut'?'on':''}">Cut — it is finished</button>
+      <button data-act="cord" data-v="untie" class="${m==='untie'?'on':''}">Untie — it continues, altered</button>
+    </div></div>
+  <div class="field"><label>This end is me —</label>
+    <input class="inp" data-act="cordend" data-k="a" value="${esc(S.cordEnds.a||'')}" placeholder="your name, or what part of you is tied"></div>
+  <div class="field"><label>This end is —</label>
+    <input class="inp" data-act="cordend" data-k="b" value="${esc(S.cordEnds.b||'')}" placeholder="the arrangement, the habit, the hold — not a person's name"></div>
+  ${guide}
+  <div class="banner danger"><b>Nothing living gets cut.</b> No hair, no skin, no blood tonight. The cord is the cord.</div>`;
+ }
+},
+
+/* ---------------------------------------------------------- 9 · BURN */
+{id:'burn', name:'The Fire', eyebrow:':36 — Burn', mins:7,
+ render(){
+  return `<h2>Carried out, not destroyed</h2>
+  <p class="lede">One at a time, unhurried. Each person reads their sheet aloud — or, if it is not sayable in company, reads only the closing line and holds the rest. Then it goes to the vessel.</p>
+  <div class="banner"><b>Watch it go all the way out.</b> Do not move to the next person while paper is still glowing. Use the three-minute timer below and let the silence sit; the circle is good at silence.</div>
+  <div class="say all">Not destroyed. Carried out. Go well, and go all the way.</div>
+  ${S.ladder.closing?`<div class="card deep"><h4>Your closing line, to read at the fire</h4>
+    <p style="font-size:1.15rem;font-style:italic;color:#f4eae0;margin:0">${esc(S.ladder.closing)}</p></div>`:''}
+  <div class="card"><h4>If you cannot burn</h4>
+  <p style="margin:0">Rental, roommates, no ventilation, attending from bed. These are <b>equivalent, not lesser</b>: <b>dissolve</b> the parchment in water and pour it out at a drain or a root; <b>bury</b> it; or <b>shred</b> it and part with the pieces in two directions. Marzanna is drowned as often as she is burned.</p></div>
+  <div class="btnrow"><button class="btn ${S.checks.burned?'':'primary'} wide" data-act="burned">${S.checks.burned?'✓ It is ash':'It is ash'}</button></div>`;
+ }
+},
+
+/* ---------------------------------------------------------- 10 · FILL */
+{id:'fill', name:'The Emptied Space', eyebrow:':43 — Fill', mins:7,
+ render(){
+  const today=new Date(EVENT.y,EVENT.m-1,EVENT.d);
+  const iso=d=>d.toISOString().slice(0,10);
+  const max=new Date(today.getTime()+7*864e5);
+  const ok=(S.fill.space||'').trim()&&(S.fill.into||'').trim()&&(S.fill.feed||'').trim()&&S.fill.when;
+  return `<h2>The step nearly everyone skips</h2>
+  <p class="lede">Call <b>Wepwawet</b> now — Opener of the Ways, who goes at the head of the procession and clears the road. Then each person completes the formula <b>out loud, in the circle</b>. Silent intentions do not count here; the whole point is that it is witnessed.</p>
+  <div class="say host">The space is empty and it will not stay empty. It fills with whatever is nearest — and what is nearest is the thing you just took out, because it knows the room. So say what goes in. Say it where we can hear it. Say when.</div>
+  <div class="field"><label>1 · The space that is now empty is —</label>
+    <input class="inp" data-act="fill" data-k="space" value="${esc(S.fill.space||'')}" placeholder="the hours, the attention, the room in your week it occupied">
+    <p class="tiny" style="margin-top:6px">Be concrete. "Thursday evenings." "The first hour of every morning." "The part of me that was always braced."</p></div>
+  <div class="field"><label>2 · Into it goes —</label>
+    <input class="inp" data-act="fill" data-k="into" value="${esc(S.fill.into||'')}" placeholder="one thing. Not a list.">
+    <p class="tiny" style="margin-top:6px">A list is how the old thing gets back in. One thing.</p></div>
+  <div class="field"><label>3 · I will feed it by —</label>
+    <input class="inp" data-act="fill" data-k="feed" value="${esc(S.fill.feed||'')}" placeholder="one concrete action a witness could verify">
+    <p class="tiny" style="margin-top:6px">Not "be kinder to myself." Something someone else could check.</p></div>
+  <div class="field"><label>…and I will do that by —</label>
+    <input class="inp" type="date" data-act="fill" data-k="when" value="${esc(S.fill.when||'')}" min="${iso(today)}" max="${iso(max)}">
+    <p class="tiny" style="margin-top:6px">Inside seven days. Nobody leaves without a date attached.</p></div>
+  <div class="banner"><b>Host's note:</b> if someone's answer to (2) is a version of the thing they just burned — a better relationship of the same shape, a healthier version of the same job — gently send them back a rung. That is the old thing wearing a coat, and it is the single most common failure of release work.</div>
+  ${ok?`<div class="card deep"><h4>Say this aloud, now, where they can hear it</h4>
+    <p style="font-size:1.1rem;font-style:italic;color:#f4eae0;margin:0">The space that is now empty is ${esc(S.fill.space)}. Into it goes ${esc(S.fill.into)}. I will feed it by ${esc(S.fill.feed)}, and I will do that by ${esc(new Date(S.fill.when+'T12:00').toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'}))}.</p>
+    </div><div class="btnrow"><button class="btn sm" data-act="copyfill">Copy it</button></div>`:''}
+  <div class="say">Opener of the Ways, who goes first and clears the road — the ground is bare now. Do not leave it bare. Open the way I named, and go ahead of me on it, so that what left tonight finds the road closed behind it.</div>`;
+ }
+},
+
+/* ---------------------------------------------------------- 11 · BOAT WRITE */
+{id:'boatwrite', name:'Writing & binding', eyebrow:':50 — The Boat', mins:10,
+ render(){
+  const side=S.checks.side;
+  const bind=[['Wrap the strip round the outside of the four posts','Leave the top open. The lantern is a chimney, not a box.'],
+   ['Tie off with cotton twine at the top','Natural fibre only. Nothing that melts.'],
+   ['Tie again near the bottom','Snug, not crushing.'],
+   ['Set the light in the middle, clear of the walls','Do not light it yet.']];
+  const bl=bind.map((b,i)=>{const id='W'+i,on=S.checks[id];
+    return `<div class="chk ${on?'done':''}" data-act="chk" data-id="${id}"><div class="box">✓</div>
+      <div class="txt"><b>${esc(b[0])}</b>${esc(b[1])}</div></div>`;}).join('');
+  return `<h2>The farewell — not the account</h2>
+  <p class="lede">The parchment is ash. This is a different piece of writing and the difference is the whole point.</p>
+  <div class="card"><h4>Keep the two apart</h4>
+    <p><b>The parchment was the account</b> — the arrangement, the habit, your own part in it, named exactly. Ugly, specific, and gone to the fire.</p>
+    <p style="margin:0"><b>The lantern paper is the farewell</b> — what you would say to the thing if it could hear you, and if you had finished being angry. Two lines is plenty. <i>Go well</i> is plenty. Obon does both: a working that is all fire and no farewell tends to bring the thing back in a new coat within the month.</p></div>
+  <div class="say host">You have already told the truth about it. That page is ash. This one is different — this one is the thing you would say if it could hear you, and if you were done being angry. Write it inside if it is yours alone; write it outside if you want it witnessed.</div>
+  <div class="field"><label>Your farewell — draft it here, then write it on the paper by hand</label>
+    <textarea class="inp" data-act="farewell" rows="3" placeholder="Go well…">${esc(S.farewell)}</textarea></div>
+  <div class="field"><label>Which face?</label>
+    <div class="toggle">
+      <button data-act="side" data-v="in" class="${side==='in'?'on':''}">Inside — mine alone</button>
+      <button data-act="side" data-v="out" class="${side==='out'?'on':''}">Outside — witnessed</button>
+    </div>
+    <p class="tiny" style="margin-top:8px">${side==='in'?'Written inward, it is read only by the light and by whatever is leaving.':side==='out'?'Written outward, the circle sees it as it goes.':'Either is right. Choose deliberately rather than by default.'}</p></div>
+  <p class="eyebrow" style="margin-top:24px">Binding</p>${bl}
+  <div class="banner"><b>Do not light it yet.</b> The next screen holds until eight o'clock.</div>`;
+ }
+},
+
+/* ---------------------------------------------------------- 12 · LAUNCH */
+{id:'launch', name:'Eight o’clock', eyebrow:'The launch', mins:0,
+ render(){
+  const tz=myTZ();
+  return `<h2>One push, and no more</h2>
+  <div class="count" id="lc"><div class="lbl">Your launch — ${String(EVENT.hour).padStart(2,'0')}:00 local</div>
+    <div class="clock" id="lcClock">—</div><div class="sub" id="lcSub"></div></div>
+  <p class="lede">Take it outside. Light it, set it on the water, <b>give it a single push, and do not touch it again.</b> A river supplies the current; in a tub you supply it once and then you are done supplying it. That is the entire working.</p>
+  <div class="banner"><b>If the wind parks it against the side, leave it.</b> Where it ends up is not yours to arrange any more. Everyone who reaches back in to straighten it will learn something about themselves.</div>
+  <div class="say">One push. That is the last thing I do for this. Go well, and go all the way.</div>
+  <div class="btnrow">
+    <button class="btn ${S.lit?'':'primary'}" data-act="lit">${S.lit?'✓ Lit':'It is lit'}</button>
+    <button class="btn ${S.pushed?'':'primary'}" data-act="pushed">${S.pushed?'✓ Pushed — hands off':'One push given'}</button>
+  </div>
+  ${S.pushed?`<div class="card deep"><h4>Post your launch to the relay thread</h4>
+    <p class="muted">City and local time, nothing more. The photo comes later, at your own dark.</p>
+    <p style="font-family:var(--mono);font-size:.9rem;color:var(--gold);background:var(--panel2);padding:12px 14px;border-radius:3px">${esc(relayLine())}</p>
+    <div class="btnrow" style="margin-bottom:0"><button class="btn sm" data-act="copyrelay">Copy for Discord</button></div></div>`:''}
+  <div class="card"><h4>If it is not eight o'clock yet</h4>
+  <p style="margin:0">Hold the boat and launch alone at your own eight — the circle will be open by then and that is intended. Keep this page; it will count down for you and tell you when.</p></div>`;
+ },
+ mount(){ tickers.launch=()=>{
+   const L=myLaunch(), now=Date.now(), d=L-now, box=$('#lc'), c=$('#lcClock'), s=$('#lcSub');
+   if(!c) return;
+   if(d>0){ box.className='count'; c.textContent=dur(d); s.textContent='until '+fmtLocal(L,myTZ())+' where you are · '+fmtUTC(L); }
+   else if(d>-36e5){ box.className='count now'; c.textContent='It is the hour. Light it.'; s.textContent='eight o’clock passed '+durWords(d)+' ago'; }
+   else { box.className='count past'; c.textContent='Eight o’clock has passed'; s.textContent=durWords(d)+' ago — launch anyway, the relay is generous'; }
+ }; }
+},
+
+/* ---------------------------------------------------------- 13 · CLOSE */
+{id:'close', name:'Thanks & release', eyebrow:':70 — Close', mins:5,
+ render(){
+  const rev=[...DEITIES].sort((a,b)=>b.order-a.order);
+  const items=rev.map((d,i)=>{const id='R'+d.id,on=S.checks[id];
+    return `<div class="chk ${on?'done':''}" data-act="chk" data-id="${id}"><div class="box">✓</div>
+      <div class="txt"><b>${esc(d.n)}</b>${d.id==='marzanna'?'Released outward and <b>not</b> retained. Her whole rite is that she goes.':d.id==='ganesha'?'Last, as he was first.':'Thanked and released.'}</div></div>`;}).join('');
+  return `<h2>Reverse order, Ganesha last</h2>
+  <p class="lede">Thank and release the eight in reverse order of calling. Then open the circle.</p>
+  ${items}
+  <div class="banner"><b>Then: water, food, and a straightforward human sentence to land everyone.</b> Release work leaves people wide open and cheerful in a way that fades badly on the drive home. Do not let them leave on the high.</div>
+  <div class="say host">Cords cut, cauldrons lit, boats on the water, the week put down where it belongs. Go and eat something.</div>
+  <div class="card"><h4>Send them off with one instruction, not a summary</h4>
+    <p style="margin:0;font-size:1.08rem;font-style:italic;color:#f4eae0">Go back out when it is dark. Look at the boat. Do not touch it.</p></div>`;
+ }
+},
+
+/* ---------------------------------------------------------- 14 · SITTING */
+{id:'sitting', name:'The second sitting', eyebrow:'At your own dark', mins:0,
+ render(){
+  const tz=myTZ(), dk=darkToday(), ss=sunsetToday();
+  return `<h2>Come back and look</h2>
+  <div class="count" id="sc"><div class="lbl">True dark where you are</div>
+    <div class="clock" id="scClock">—</div><div class="sub" id="scSub"></div></div>
+  ${S.lat===null?`<div class="banner">Set your location on the first screen and this will count down to your own dark.</div>`:''}
+  <p class="lede">Eight o'clock was the launch. This is the other half, and for most of the northern circle it is the better half.</p>
+  <div class="card"><h4>Look, do not touch</h4>
+    <p>Do not straighten it, do not relight it, do not nudge it back toward the middle. <b>You are returning to see where it got to without you</b> — and the whole gap between the two moments is time in which you had no say in the matter. That is the part that does the work.</p>
+    <p style="margin:0">Some will come back to a boat still burning against the side of the tub. Some to one that went out an hour ago. Some to one that has drifted nowhere at all. <b>None of these is the wrong result.</b></p></div>
+  <div class="banner calm">${ss?`Sunset where you are: <b>${fmtLocal(ss,tz)}</b>. `:''}${dk?`True dark: <b>${fmtLocal(dk,tz)}</b>.`:S.lat===null?'':'You get no true dark tonight — take the darkest hour you get, around one in the morning, or take the twilight and be content.'}</div>
+  <div class="btnrow"><button class="btn ${S.sat?'':'primary'} wide" data-act="sat">${S.sat?'✓ I sat with it':'I have sat with it'}</button></div>
+  ${S.sat?`<div class="card deep"><h4>Now the photo, for the relay thread</h4>
+    <p class="muted">The thread carries two waves — times running clean round the earth, and pictures following a couple of hours behind. That gap is night crossing the world.</p>
+    <p style="font-family:var(--mono);font-size:.9rem;color:var(--gold);background:var(--panel2);padding:12px 14px;border-radius:3px">${esc(sittingLine())}</p>
+    <div class="btnrow" style="margin-bottom:0"><button class="btn sm" data-act="copysit">Copy for Discord</button></div></div>`:''}
+  <div class="card"><h4>Then retrieve everything</h4>
+    <p>Lift the boat out and let it dry. Nothing gets released into a river, lake or sea — real tōrō nagashi has boats that gather the lanterns downstream, and ours never puts anything in a waterway to begin with. <b>Empty the tub the same night</b>; in August standing water is a mosquito nursery by the weekend.</p>
+    <p style="margin:0">You will find the writing has gone illegible. That is the correct outcome.</p></div>
+  <hr class="rule">
+  <p style="text-align:center;font-style:italic;color:var(--faint)">Cords cut, cauldrons lit, boats on the water, and the week put down where it belongs.</p>`;
+ },
+ mount(){ tickers.sit=()=>{
+   const dk=darkToday(), box=$('#sc'), c=$('#scClock'), s=$('#scSub'); if(!c) return;
+   if(S.lat===null){ c.textContent='—'; s.textContent='location not set'; return; }
+   if(!dk){ box.className='count now'; c.textContent='No true dark tonight'; s.textContent='take the darkest hour you get'; return; }
+   const d=dk-Date.now();
+   if(d>0){ box.className='count'; c.textContent=dur(d); s.textContent='until '+fmtLocal(dk,myTZ())+' where you are'; }
+   else { box.className='count now'; c.textContent='It is dark. Go and look.'; s.textContent='dark since '+fmtLocal(dk,myTZ()); }
+ }; }
+}
+];
+
+/* ============================================================ LINES */
+function relayLine(){
+  const tz=myTZ(), city=S.place||tz.split('/').pop().replace(/_/g,' ');
+  return city+' — '+String(EVENT.hour).padStart(2,'0')+':00 local — lit. One push given.';
+}
+function sittingLine(){
+  const tz=myTZ(), city=S.place||tz.split('/').pop().replace(/_/g,' '), dk=darkToday();
+  return city+' — sat with it at '+(dk?fmtLocal(dk,tz):'dark')+'. Didn’t touch it.';
+}
+function parchmentHTML(){
+  const L=S.ladder;
+  const line=(lab,v)=>v?`<div class="ln"><span>${esc(lab)}</span>${esc(v)}</div>`:'';
+  return `<div class="parch">
+    <h5>The account, as it actually was</h5>
+    ${line('The arrangement',L.arrangement)}
+    ${line('The recurring moment',L.moment)}
+    ${line('What it paid me',L.payoff)}
+    ${line('The sentence that kept it',L.sentence)}
+    <div class="seal">${esc(L.closing||'This account is closed as of tonight.')}</div>
+  </div>
+  <div class="btnrow"><button class="btn sm" data-act="copyparch">Copy the text</button>
+  <button class="btn sm ghost" onclick="window.print()">Print it</button></div>
+  <div class="banner"><b>Now write it out by hand, in red, on the parchment.</b> The typing was to find the words. The hand is what commits them. Rung one — the vague version — is deliberately left off: it was the wrapper, and it does not go to the fire.</div>`;
+}
+function parchmentText(){
+  const L=S.ladder;
+  return ['THE ACCOUNT, AS IT ACTUALLY WAS','',
+    'The arrangement: '+(L.arrangement||''),
+    'The recurring moment: '+(L.moment||''),
+    'What it paid me: '+(L.payoff||''),
+    'The sentence that kept it: '+(L.sentence||''),'',
+    (L.closing||'This account is closed as of tonight.')].join('\n');
+}
+
+/* ============================================================ ENGINE */
+let tickers={};
+function render(){
+  tickers={};
+  const st=STEPS[S.step];
+  $('#stage').innerHTML=`<div class="screen">${st.render()}</div>`;
+  $('#brandsub').textContent=st.name;
+  $('#stepno').textContent=(S.step+1)+' / '+STEPS.length;
+  $('#progbar').style.width=((S.step)/(STEPS.length-1)*100)+'%';
+  $('#btnBack').style.visibility=S.step===0?'hidden':'visible';
+  const nx=$('#btnNext');
+  nx.textContent = S.step===STEPS.length-1 ? 'Begin again' : 'Continue →';
+  if(st.mount) st.mount();
+  setupTimer(st.mins||0);
+  tick();
+  window.scrollTo({top:0,behavior:'instant'});
+}
+function go(n){
+  const st=STEPS[S.step];
+  if(n>S.step && st.canNext && !st.canNext()){ flash(st.blockMsg||'Not yet.'); return; }
+  S.step=Math.max(0,Math.min(STEPS.length-1,n));
+  if(S.step===0 && n>=STEPS.length){ S.step=0; }
+  render();
+}
+function flash(msg){
+  let el=document.createElement('div');
+  el.textContent=msg;
+  el.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--botH) + 18px);z-index:95;background:#d4635a;color:#fff;padding:11px 18px;border-radius:3px;font-family:var(--sans);font-size:12.5px;letter-spacing:.05em;box-shadow:0 8px 26px rgba(0,0,0,.5)';
+  document.body.appendChild(el); setTimeout(()=>el.remove(),2600);
+}
+
+/* ---- timer ---- */
+let T={total:0,left:0,run:false,iv:null};
+function setupTimer(mins){
+  clearInterval(T.iv); T.iv=null; T.run=false;
+  T.total=mins*60; T.left=T.total;
+  $('#timerbox').style.display = mins>0 ? 'flex':'none';
+  $('#timerbox').classList.remove('run'); $('#tPlay').textContent='▶';
+  drawTimer();
+}
+function drawTimer(){
+  const m=Math.floor(T.left/60), s=T.left%60;
+  $('#tDisp').textContent=m+':'+String(s).padStart(2,'0');
+}
+$('#tPlay').onclick=()=>{
+  if(T.run){ clearInterval(T.iv); T.run=false; $('#tPlay').textContent='▶'; $('#timerbox').classList.remove('run'); }
+  else{ T.run=true; $('#tPlay').textContent='❚❚'; $('#timerbox').classList.add('run');
+    T.iv=setInterval(()=>{ T.left--; drawTimer();
+      if(T.left<=0){ clearInterval(T.iv); T.run=false; $('#tPlay').textContent='▶';
+        $('#timerbox').classList.remove('run'); bell(); flash('Time on this beat. Overrun it if the room needs it.'); }
+    },1000); }
+};
+$('#tReset').onclick=()=>{ clearInterval(T.iv); T.run=false; T.left=T.total; drawTimer();
+  $('#tPlay').textContent='▶'; $('#timerbox').classList.remove('run'); };
+
+/* ---- global tick ---- */
+function tick(){ for(const k in tickers){ try{tickers[k]();}catch(e){} } }
+setInterval(tick,1000);
+
+/* ---- nav ---- */
+$('#btnBack').onclick=()=>go(S.step-1);
+$('#btnNext').onclick=()=>{ if(S.step===STEPS.length-1){ S.step=0; render(); } else go(S.step+1); };
+
+/* ---- chrome ---- */
+$('#btnSound').onclick=e=>{ S.sound=!S.sound; e.currentTarget.classList.toggle('on',S.sound); if(S.sound) bell(660,.5); };
+$('#btnSound').classList.add('on');
+$('#btnText').onclick=()=>{ S.scale = S.scale>=1.3 ? 1 : S.scale+0.15;
+  document.documentElement.style.setProperty('--scale',S.scale);
+  $('#btnText').classList.toggle('on',S.scale>1); };
+
+/* ============================================================ EVENTS */
+$('#stage').addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]'); if(!b) return;
+  const a=b.dataset.act;
+  if(a==='mode'){ S.mode=b.dataset.v; render(); }
+  if(a==='chk'){ S.checks[b.dataset.id]=!S.checks[b.dataset.id]; render(); }
+  if(a==='cord'){ S.cordMode=b.dataset.v; render(); }
+  if(a==='side'){ S.checks.side=b.dataset.v; S.side=b.dataset.v; render(); }
+  if(a==='burned'){ S.checks.burned=!S.checks.burned; bell(392,1.8); render(); }
+  if(a==='lit'){ S.lit=!S.lit; if(S.lit) bell(528,1.6); render(); }
+  if(a==='pushed'){ S.pushed=!S.pushed; if(S.pushed) bell(440,2.2); render(); }
+  if(a==='sat'){ S.sat=!S.sat; if(S.sat) bell(349,2.4); render(); }
+  if(a==='parch'){ $('#parchOut').innerHTML=parchmentHTML(); $('#parchOut').scrollIntoView({behavior:'smooth',block:'nearest'}); }
+  if(a==='copyparch') copy(parchmentText(),b);
+  if(a==='copyrelay') copy(relayLine(),b);
+  if(a==='copysit') copy(sittingLine(),b);
+  if(a==='copyfill') copy(`The space that is now empty is ${S.fill.space}. Into it goes ${S.fill.into}. I will feed it by ${S.fill.feed}, and I will do that by ${S.fill.when}.`,b);
+  if(a==='dopen'){ b.closest('.deity').classList.toggle('open'); }
+  if(a==='invoke'){ openInvocation(b.dataset.d); }
+  if(a==='skipgeo'){ $('#geoMsg').textContent='Fine — you will still get your launch time and your place in the relay. Only sunset and true dark need a location.'; }
+  if(a==='geo'){
+    const msg=$('#geoMsg'); msg.textContent='Asking your browser…';
+    if(!navigator.geolocation){ msg.textContent='This browser will not share a location. Pick the nearest city instead.'; return; }
+    navigator.geolocation.getCurrentPosition(p=>{
+      S.lat=p.coords.latitude; S.lon=p.coords.longitude; S.place='your location';
+      render(); $('#geoMsg').textContent='Got it. Sunset and true dark are set for where you actually are.';
+    },()=>{ msg.textContent='Location refused or unavailable — pick the nearest city below, it is close enough for sunset.'; },
+    {timeout:9000,maximumAge:6e5});
+  }
+});
+$('#stage').addEventListener('change',e=>{
+  const t=e.target.closest('[data-act]'); if(!t) return;
+  if(t.dataset.act==='city'){
+    const i=t.value; if(i===''){ return; }
+    const c=CITIES[+i]; S.place=c[0]; S.lat=c[1]; S.lon=c[2]; render();
+  }
+  if(t.dataset.act==='fill'){ S.fill[t.dataset.k]=t.value; render(); }
+});
+$('#stage').addEventListener('input',e=>{
+  const t=e.target.closest('[data-act]'); if(!t) return;
+  const a=t.dataset.act;
+  if(a==='ladder'){ S.ladder[t.dataset.k]=t.value; }
+  if(a==='cordend'){ S.cordEnds[t.dataset.k]=t.value; }
+  if(a==='farewell'){ S.farewell=t.value; }
+  if(a==='fill'){ S.fill[t.dataset.k]=t.value; }
+});
+$('#stage').addEventListener('blur',e=>{
+  const t=e.target.closest('[data-act]'); if(!t) return;
+  if(t.dataset.act==='ladder'){ const y=window.scrollY; render(); window.scrollTo(0,y); }
+},true);
+
+/* ---- invocation overlay ---- */
+let ovlId=null;
+function openInvocation(id){
+  const d=DEITIES.find(x=>x.id===id); if(!d) return;
+  ovlId=id;
+  $('#ovlWho').textContent=d.n+' · '+d.say;
+  $('#ovlWords').textContent=d.inv;
+  $('#ovlNote').innerHTML='Offering — '+d.off;
+  $('#ovlDone').textContent = S.called[id] ? 'Called ✓' : 'Called ✓';
+  $('#ovl').classList.add('show');
+}
+$('#ovlClose').onclick=()=>$('#ovl').classList.remove('show');
+$('#ovlDone').onclick=()=>{ if(ovlId){ S.called[ovlId]=true; bell(587,1.2); } $('#ovl').classList.remove('show'); render(); };
+
+/* ============================================================ DRAWER */
+const TABS=[
+ ['deities','The Eight'],['hour','The hour'],['boat','The boat'],['dark','Dark & relay'],
+ ['cautions','Cautions'],['crib','Host’s crib'],['why','Why tonight']
+];
+let tab='deities';
+function drawerBody(){
+  if(tab==='deities'){
+    return `<h2>The Eight</h2><p class="lede">Deities of release, unbinding and the opened road. Male and female, bright and dark, seven traditions.</p>`
+    + DEITIES.map(d=>`<div class="card"><h3>${esc(d.n)} <span class="glyph">${esc(d.g)}</span></h3>
+      <p class="tiny" style="font-family:var(--mono)">${esc(d.say)} · ${esc(d.tag)}</p>
+      <dl class="drow"><dt>Holds</dt><dd>${d.holds}</dd></dl>
+      <dl class="drow"><dt>Why tonight</dt><dd>${d.why}</dd></dl>
+      <dl class="drow"><dt>Offering</dt><dd>${d.off}</dd></dl>
+      <dl class="drow"><dt>Approach</dt><dd>${d.app}</dd></dl>
+      <div class="say" style="margin-bottom:0">${esc(d.inv)}</div></div>`).join('')
+    + `<div class="card flat" style="border-style:dashed"><h4>Who is not on this list</h4>
+       <p style="margin:0">No Orisha, no Lwa, no Indigenous or otherwise initiatory figures. Not because they lack release aspects — several have them profoundly — but because those are held within lineages with living gatekeepers, and a public open working is not where that door gets opened.</p></div>`;
+  }
+  if(tab==='hour'){
+    const beats=[[':00','Open','The fires are lit — welcome, framing, the shape of the hour in three sentences.'],
+    [':05','Ward','Casting, then the safety brief out of ritual voice. Everyone touches their water.'],
+    [':10','Call','Invocation of the Eight. Ganesha first; Wepwawet held back for the road.'],
+    [':17','Name','The Naming — parchment, red ink, own hand. The Precision Ladder. Worth overrunning.'],
+    [':29','Cut','The Cord — two named ends. Cut for what is finished, untie for what continues altered.'],
+    [':36','Burn','The Fire — one at a time, read aloud, watch it all the way out.'],
+    [':43','Fill','The Emptied Space — Wepwawet, and the formula said aloud with a date attached.'],
+    [':50','Build','The Boat — write the farewell, bind the paper. Do not light.'],
+    [':60','Launch','Eight o’clock, outdoors. Light, one push, hands off.'],
+    [':70','Close','Thanks and release in reverse order, Ganesha last. Water, food, land everyone.'],
+    ['dark','Sitting','The second sitting at your own true dark. Look, do not touch.']];
+    return `<h2>The order of service</h2><p class="lede">Sixty minutes plus a fifteen-minute coda, plus the sitting at your own dark. Timings are the shape, not a cage.</p>
+    <table class="tbl"><thead><tr><th>Clock</th><th>Beat</th><th>What happens</th></tr></thead><tbody>
+    ${beats.map(b=>`<tr><td class="m">${b[0]}</td><td>${b[1]}</td><td>${esc(b[2])}</td></tr>`).join('')}</tbody></table>
+    <h3 style="margin-top:28px">The Precision Ladder</h3>
+    <ol>${LADDER.map(r=>`<li><b>${esc(r.t)}</b><br><span class="tiny">${r.ex}</span></li>`).join('')}</ol>
+    <h3 style="margin-top:28px">The Filling Formula</h3>
+    <div class="card"><p><b>1 · The space that is now empty is</b> ______</p>
+    <p><b>2 · Into it goes</b> ______ — one thing. Not a list. A list is how the old thing gets back in.</p>
+    <p><b>3 · I will feed it by</b> ______ <b>, and I will do that by</b> ______ — one concrete action, with a date inside seven days.</p>
+    <p style="margin:0" class="muted"><i>Host's note:</i> if someone's answer to (2) is a version of the thing they just burned, gently send them back a rung. That is the old thing wearing a coat, and it is the single most common failure of release work.</p></div>`;
+  }
+  if(tab==='boat'){
+    return `<h2>The Boat</h2>
+    <p class="lede">Our own okuribi, on water, outdoors. Build the frame ahead; write and bind it in the hour; light it at eight.</p>
+    <p>One of the five Kyoto fires is not a character at all but <b>Funagata</b>, the shape of a boat, because some journeys are made by water. Obon closes on water as well as fire: <b>tōrō nagashi</b>, the floating of lanterns, sends the same farewell downstream on a paper-walled boat with a light inside.</p>
+    <figure class="diagram">${LANTERN_SVG}<figcaption>Funagata — after the fourth Kyoto fire</figcaption></figure>
+    <h3>Building it</h3><ol>${BUILD.map(b=>`<li><b>${esc(b.t)}</b><br>${b.d}</li>`).join('')}
+    <li><b>Write the paper — in the working, not before.</b> Inside face if it is yours alone; outside face if you want it witnessed. Once it is bound and lit you cannot change it, and that is deliberate.</li>
+    <li><b>Bind it.</b> Wrap the strip round the outside of the four posts, tie off with cotton twine top and bottom. Leave the top open; the lantern is a chimney, not a box.</li>
+    <li><b>At eight: light, launch, one push.</b> Then do not touch it again.</li>
+    <li><b>Come back at dark, look without touching, then retrieve everything and empty the tub.</b></li></ol>
+    <div class="card"><h4>Why the boat carries something different from the parchment</h4>
+    <p><b>The parchment is the account</b> — the arrangement, the habit, the hold, named exactly, including your own part in it. Ugly, specific, and it goes to the fire. <b>The lantern paper is the farewell</b> — what you would say to the thing if it could hear you, and if you had finished being angry. Two lines is plenty.</p>
+    <p style="margin:0">Obon does both. You do not only burn; you also say goodbye, and the goodbye is the part that lets it actually leave. A working that is all fire and no farewell tends to bring the thing back in a new coat within the month.</p></div>
+    <div class="card"><h4>Which of the eight stand over the water</h4>
+    <p style="margin:0">Half the roster is already wet, which is part of why this fits rather than being bolted on. <b>Wepwawet</b> stands at the prow of the solar barque — he is a boat god before he is anything else. <b>Marzanna</b> is drowned at least as often as she is burned. <b>Mèng Pó</b> keeps her station at a bridge, which is to say at a crossing over water.</p></div>`;
+  }
+  if(tab==='dark'){
+    const rows=[['Reykjavík','21:39','01:03 — barely','5h — LED, and take what dark you get'],
+    ['Anchorage','21:54','00:14','4h 14m — LED essential'],['Stockholm','20:34','22:34','2h 34m'],
+    ['Edinburgh','20:46','22:27','2h 27m'],['Dublin','20:50','22:21','2h 21m'],
+    ['Berlin','20:29','21:57','1h 57m'],['London','20:20','21:45','1h 45m'],
+    ['Vancouver','20:26','21:45','1h 45m'],['Toronto','20:19','21:28','1h 28m'],
+    ['New York','19:52','20:57','57m'],['Denver','19:54','20:58','58m'],
+    ['Los Angeles','19:38','20:36','36m'],['Phoenix','19:12','20:10','10m'],
+    ['Tokyo · Sydney · Auckland · Delhi · Honolulu','—','already dark','none — you simply stay']];
+    return `<h2>The Two Moments</h2>
+    <p class="lede">Eight o'clock is not dark. Say this out loud early, or half the circle spends the evening feeling they got the inferior version.</p>
+    <div class="card"><h4>First — eight o'clock. The launch.</h4>
+    <p style="margin:0">This is the working and it does not move. Eight local is Kyoto's hour, and holding it is what makes the relay a chain rather than a scatter. You light, set it on the water, give it <b>one push</b>, and walk away. Whether you can see it glow is not the point and never was. <b>A lantern you cannot see is still lit.</b> The dead of Obon are not visible either.</p></div>
+    <div class="card"><h4>Second — your own dark. The sitting.</h4>
+    <p>Come back when night has actually arrived where you are. Do not touch it. <b>You are returning to see where it got to without you</b> — and the whole gap between the two moments is time in which you had no say in the matter. That is the part that does the work.</p>
+    <p style="margin:0">Some will come back to a boat still burning against the side of the tub. Some to one that went out an hour ago. Some to one that has drifted nowhere at all. None of these is the wrong result.</p></div>
+    <table class="tbl"><thead><tr><th>Where</th><th>Sunset</th><th>True dark</th><th>Gap after launch</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${esc(r[0])}</td><td class="m">${esc(r[1])}</td><td class="m">${esc(r[2])}</td><td>${esc(r[3])}</td></tr>`).join('')}</tbody></table>
+    <p class="tiny">Times for 16 August 2026, local. "True dark" is nautical twilight — the point at which a small flame on water actually reads against the background. <b>Anything over three hours means an LED</b>, because a tealight will not survive the wait.</p>
+    <h3 style="margin-top:28px">The relay</h3>
+    <p>Everyone lights at eight local, which is when Kyoto lights. The first lantern goes on in the Line Islands at 06:00 UTC on the sixteenth; the last in American Samoa at 07:00 UTC on the seventeenth. <b>Twenty-five hours, and for every one of them somebody among us has a light on the water.</b></p>
+    <p class="muted"><i>Host's note:</i> ask for the launch <b>time</b> at eight, and the <b>photo</b> at the second moment. The thread then holds both — a clean westward chain of times, and a slower trail of images following a couple of hours behind. That lag is the shape of the terminator crossing the earth.</p>`;
+  }
+  if(tab==='cautions'){
+    return `<h2>Cautions</h2>
+    <div class="card warn"><h4>The hour</h4><ul>${CAUTIONS_HOUR.map(c=>`<li><b>${esc(c[0])}</b> — ${esc(c[1])}</li>`).join('')}</ul></div>
+    <div class="card warn"><h4>The boat, outdoors</h4>
+    <p style="color:var(--ink)"><b>Check your local fire restrictions before you strike anything.</b> This is the middle of August. Large parts of the American West, the Mediterranean and southern Australia are under burn bans, fire watches or total fire restrictions at exactly this time of year, and a burn ban means a burn ban — it does not have a folk-practice exemption. If you are anywhere near one, take the LED. Nobody in this circle is being asked to choose between the rite and the fire service.</p>
+    <ul>${CAUTIONS_BOAT.map(c=>`<li><b>${esc(c[0])}</b> — ${c[1]}</li>`).join('')}</ul>
+    <p style="margin:0"><b>No outdoor space at all?</b> Balcony with an LED, or indoors in a washing-up bowl on a towel. A soup bowl is a river. Scale was never the point; the single push is the point.</p></div>`;
+  }
+  if(tab==='crib'){
+    return `<h2>Host's crib</h2><p class="lede">The four that come up every time.</p>
+    ${CRIB.map(c=>`<div class="card"><h4>${esc(c[0])}</h4><p style="margin:0">${c[1]}</p></div>`).join('')}
+    <div class="card deep"><h4>Materials, at a glance</h4>
+    <p><b>The hour —</b> cauldron or chalice, candles, cord, parchment, red ink, blade or scissors, offerings, water in reach.</p>
+    <p style="margin:0"><b>The boat —</b> water vessel, floating base six inches across, four chopsticks, a blank paper strip, cotton twine, tealight or LED, hot glue or tape, a sheltered outdoor spot on hard ground.</p></div>`;
+  }
+  return `<h2>Why tonight</h2>
+  <p>Tonight is the night of the <b>okuribi</b> — the send-off fires. In Kyoto the five mountain fires of <b>Gozan no Okuribi</b> are lit on the sixteenth of August at eight in the evening: the characters for <i>great</i>, <i>wondrous</i>, <i>dharma</i>, a boat, and a shrine gate, burning on the hillsides to close Obon and light the returning road for the dead who have been visiting since the thirteenth.</p>
+  <p>The logic is exactly ours, and worth saying plainly at the top: <b>the fire is not for destruction. It is for the journey out.</b> Obon does not end by pretending the dead were never there. It ends by feeding them, sitting with them, and then lighting a road and saying <i>go well</i>. Everything we burn tonight gets the same treatment. We are not incinerating what we hated. We are lighting the way out for what we are done with — and then, unlike almost everyone, we are staying in the room long enough to fill the gap.</p>
+  <p>Note which of the five characters is not a character at all. <b>Funagata</b> — the boat. Among the words for great, wondrous and dharma, one hillside burns the shape of a vessel, because some journeys are made by water. Obon closes on water as well as fire: <b>tōrō nagashi</b>, the floating of lanterns, sends the same farewell downstream on a paper-walled boat with a light inside. So we build one too.</p>
+  <hr class="rule">
+  <p class="tiny">This page is a single self-contained file. Nothing you type is stored, sent, or shared — no server, no account, no cookie. It runs entirely on your own device and forgets everything when you close it. To reuse it next year, open the file and change the date in the first line of the script.</p>`;
+}
+function drawTabs(){
+  $('#dwTabs').innerHTML=TABS.map(t=>`<button class="dwtab ${tab===t[0]?'on':''}" data-t="${t[0]}">${esc(t[1])}</button>`).join('');
+  $('#dwBody').innerHTML=drawerBody();
+  $('#dwBody').scrollTop=0;
+}
+$('#btnRef').onclick=()=>{ $('#drawer').classList.add('show'); drawTabs(); };
+$('#dwClose').onclick=()=>$('#drawer').classList.remove('show');
+$('#dwTabs').addEventListener('click',e=>{ const b=e.target.closest('[data-t]'); if(!b) return; tab=b.dataset.t; drawTabs(); });
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ $('#ovl').classList.remove('show'); $('#drawer').classList.remove('show'); }
+  if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT') return;
+  if(e.key==='ArrowRight') go(S.step+1);
+  if(e.key==='ArrowLeft') go(S.step-1);
+});
+
+/* ============================================================ BOOT */
+render();
+</script>
+</body>
+</html>
